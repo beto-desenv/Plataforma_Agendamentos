@@ -1,49 +1,49 @@
-# ?? Plataforma de Agendamentos
+# üìÖ Plataforma de Agendamentos
 
-Uma plataforma completa para agendamento de serviÁos, desenvolvida com ASP.NET Core e Vue.js.
+Uma plataforma completa para agendamento de servi√ßos, desenvolvida com ASP.NET Core e Vue.js.
 
-## ?? Funcionalidades
+## üöÄ Funcionalidades
 
-### Para Prestadores de ServiÁo:
-- ? Cadastro e autenticaÁ„o JWT
-- ? CriaÁ„o de perfil p˙blico com slug personalizado
-- ? Gerenciamento de serviÁos (CRUD)
-- ? ConfiguraÁ„o de hor·rios disponÌveis
-- ? VisualizaÁ„o e gerenciamento de agendamentos
-- ? ConfirmaÁ„o/cancelamento de agendamentos
+### Para Prestadores de Servi√ßo:
+- ‚úÖ Cadastro e autentica√ß√£o JWT
+- ‚úÖ Cria√ß√£o de perfil p√∫blico com slug personalizado
+- ‚úÖ Gerenciamento de servi√ßos (CRUD)
+- ‚úÖ Configura√ß√£o de hor√°rios dispon√≠veis
+- ‚úÖ Visualiza√ß√£o e gerenciamento de agendamentos
+- ‚úÖ Confirma√ß√£o/cancelamento de agendamentos
 
 ### Para Clientes:
-- ? Cadastro e autenticaÁ„o
-- ? Acesso a perfis p˙blicos via slug
-- ? Agendamento de serviÁos
-- ? VisualizaÁ„o de agendamentos realizados
+- ‚úÖ Cadastro e autentica√ß√£o
+- ‚úÖ Acesso a perfis p√∫blicos via slug
+- ‚úÖ Agendamento de servi√ßos
+- ‚úÖ Visualiza√ß√£o de agendamentos realizados
 
-### Recursos TÈcnicos:
-- ? API RESTful com ASP.NET Core 8
-- ? AutenticaÁ„o JWT
-- ? Entity Framework Core com PostgreSQL
-- ? Swagger/OpenAPI para documentaÁ„o
-- ? CORS configurado
-- ? ValidaÁ„o de dados
-- ? Estrutura modular e escal·vel
+### Recursos T√©cnicos:
+- ‚úÖ API RESTful com ASP.NET Core 8
+- ‚úÖ Autentica√ß√£o JWT
+- ‚úÖ Entity Framework Core com PostgreSQL
+- ‚úÖ Swagger/OpenAPI para documenta√ß√£o
+- ‚úÖ CORS configurado
+- ‚úÖ Valida√ß√£o de dados
+- ‚úÖ Estrutura modular e escal√°vel
 
-## ??? Tecnologias Utilizadas
+## üõ†Ô∏è Tecnologias Utilizadas
 
 - **Backend**: ASP.NET Core 8
 - **Banco de Dados**: PostgreSQL + Entity Framework Core
-- **AutenticaÁ„o**: JWT Bearer Token
-- **DocumentaÁ„o**: Swagger/OpenAPI
+- **Autentica√ß√£o**: JWT Bearer Token
+- **Documenta√ß√£o**: Swagger/OpenAPI
 - **Criptografia**: BCrypt.Net
 
-## ?? PrÈ-requisitos
+## üìã Pr√©-requisitos
 
 - .NET 8 SDK
 - PostgreSQL
 - Visual Studio 2022 ou VS Code
 
-## ?? ConfiguraÁ„o do Ambiente
+## ‚öôÔ∏è Configura√ß√£o do Ambiente
 
-### 1. Clone o repositÛrio e instale as dependÍncias
+### 1. Clone o reposit√≥rio e instale as depend√™ncias
 
 ```bash
 git clone [seu-repositorio]
@@ -57,7 +57,7 @@ dotnet restore
 2. Crie um banco de dados: `plataforma_agendamentos_dev`
 3. Atualize a connection string em `appsettings.Development.json`
 
-### 3. Execute as migraÁıes
+### 3. Execute as migra√ß√µes
 
 ```bash
 dotnet ef migrations add InitialCreate
@@ -70,79 +70,78 @@ dotnet ef database update
 dotnet run
 ```
 
-**URLs da aplicaÁ„o:**
-- **API**: `https://localhost:5001` ou `http://localhost:5000`
-- **Swagger**: `https://localhost:5001/swagger` ou `http://localhost:5000/swagger`
+A API estar√° dispon√≠vel em: `https://localhost:5001` ou `http://localhost:5000`
+A documenta√ß√£o Swagger estar√° em: `https://localhost:5001`
 
-## ?? Endpoints da API
+## üìö Endpoints da API
 
-### AutenticaÁ„o
-- `POST /api/auth/register` - Cadastro de usu·rio
+### Autentica√ß√£o
+- `POST /api/auth/register` - Cadastro de usu√°rio
 - `POST /api/auth/login` - Login
 
 ### Perfil
-- `GET /api/profile` - Buscar perfil do usu·rio logado
+- `GET /api/profile` - Buscar perfil do usu√°rio logado
 - `PUT /api/profile` - Atualizar perfil
 
-### ServiÁos (Prestadores)
-- `GET /api/services` - Listar serviÁos do prestador
-- `POST /api/services` - Criar serviÁo
-- `GET /api/services/{id}` - Buscar serviÁo especÌfico
-- `PUT /api/services/{id}` - Atualizar serviÁo
-- `DELETE /api/services/{id}` - Excluir serviÁo
+### Servi√ßos (Prestadores)
+- `GET /api/services` - Listar servi√ßos do prestador
+- `POST /api/services` - Criar servi√ßo
+- `GET /api/services/{id}` - Buscar servi√ßo espec√≠fico
+- `PUT /api/services/{id}` - Atualizar servi√ßo
+- `DELETE /api/services/{id}` - Excluir servi√ßo
 
-### Hor·rios (Prestadores)
-- `GET /api/schedules` - Listar hor·rios disponÌveis
-- `POST /api/schedules` - Criar hor·rio
-- `PUT /api/schedules/{id}` - Atualizar hor·rio
-- `DELETE /api/schedules/{id}` - Excluir hor·rio
+### Hor√°rios (Prestadores)
+- `GET /api/schedules` - Listar hor√°rios dispon√≠veis
+- `POST /api/schedules` - Criar hor√°rio
+- `PUT /api/schedules/{id}` - Atualizar hor√°rio
+- `DELETE /api/schedules/{id}` - Excluir hor√°rio
 
 ### Agendamentos
 - `GET /api/bookings` - Listar agendamentos
 - `POST /api/bookings` - Criar agendamento (clientes)
-- `GET /api/bookings/{id}` - Buscar agendamento especÌfico
+- `GET /api/bookings/{id}` - Buscar agendamento espec√≠fico
 - `PUT /api/bookings/{id}/status` - Atualizar status (prestadores)
 
-### P˙blico
-- `GET /api/prestador/{slug}` - Buscar prestador por slug (p˙blico)
-- `GET /api/prestador/{slug}/available-times?date=YYYY-MM-DD` - Hor·rios disponÌveis
+### P√∫blico
+- `GET /api/prestador/{slug}` - Buscar prestador por slug (p√∫blico)
+- `GET /api/prestador/{slug}/available-times?date=YYYY-MM-DD` - Hor√°rios dispon√≠veis
 
-## ?? AutenticaÁ„o
+## üîê Autentica√ß√£o
 
 A API utiliza JWT Bearer Token. Para acessar endpoints protegidos:
 
-1. FaÁa login em `/api/auth/login`
+1. Fa√ßa login em `/api/auth/login`
 2. Use o token retornado no header: `Authorization: Bearer {token}`
 
-## ?? Exemplos de Uso
+## üìù Exemplos de Uso
 
 ### Cadastro de Prestador
 
 ```json
 POST /api/auth/register
 {
-  "name": "Jo„o Silva",
+  "name": "Jo√£o Silva",
   "email": "joao@email.com",
   "password": "minhasenha123",
   "userType": "prestador"
 }
 ```
 
-### Atualizar Perfil P˙blico
+### Atualizar Perfil P√∫blico
 
 ```json
 PUT /api/profile
 {
   "slug": "joaocarwash",
-  "displayName": "Jo„o Car Wash",
+  "displayName": "Jo√£o Car Wash",
   "logoUrl": "https://exemplo.com/logo.jpg",
   "coverImageUrl": "https://exemplo.com/capa.jpg",
   "primaryColor": "#1e90ff",
-  "bio": "Lavagem ecolÛgica e r·pida!"
+  "bio": "Lavagem ecol√≥gica e r√°pida!"
 }
 ```
 
-### Criar ServiÁo
+### Criar Servi√ßo
 
 ```json
 POST /api/services
@@ -154,7 +153,7 @@ POST /api/services
 }
 ```
 
-### Agendar ServiÁo (Cliente)
+### Agendar Servi√ßo (Cliente)
 
 ```json
 POST /api/bookings
@@ -164,57 +163,16 @@ POST /api/bookings
 }
 ```
 
-## ?? Testando a API
-
-### MÈtodo 1: Swagger UI
-1. Execute o projeto: `dotnet run`
-2. Acesse: `https://localhost:5001/swagger`
-3. Use a interface gr·fica para testar os endpoints
-
-### MÈtodo 2: Postman
-1. Importe o arquivo `postman_collection.json`
-2. Configure a vari·vel `base_url` para `https://localhost:5001/api`
-3. Execute os testes na ordem: Register ? Login ? outros endpoints
-
-### MÈtodo 3: cURL
-```bash
-# Cadastro
-curl -X POST "https://localhost:5001/api/auth/register" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Jo„o Silva","email":"joao@teste.com","password":"teste123","userType":"prestador"}'
-
-# Login
-curl -X POST "https://localhost:5001/api/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{"email":"joao@teste.com","password":"teste123"}'
-```
-
-## ?? ResoluÁ„o de Problemas
-
-### Swagger n„o abre?
-- Verifique se a aplicaÁ„o est· rodando em `https://localhost:5001`
-- Acesse diretamente: `https://localhost:5001/swagger`
-- Para HTTP: `http://localhost:5000/swagger`
-
-### Problemas de CORS?
-- A configuraÁ„o j· est· feita no `Program.cs`
-- Para produÁ„o, configure URLs especÌficas no `AddCors`
-
-### Banco de dados?
-- Verifique se o PostgreSQL est· rodando
-- Confirme a connection string no `appsettings.Development.json`
-- Execute: `dotnet ef database update`
-
-## ?? PrÛximos Passos
+## üîÆ Pr√≥ximos Passos
 
 - [ ] Frontend Vue.js
-- [ ] NotificaÁıes por email
-- [ ] Sistema de avaliaÁıes
+- [ ] Notifica√ß√µes por email
+- [ ] Sistema de avalia√ß√µes
 - [ ] Pagamentos online
-- [ ] Aplicativo mÛvel
-- [ ] Dashboard com mÈtricas
+- [ ] Aplicativo m√≥vel
+- [ ] Dashboard com m√©tricas
 
-## ?? Contribuindo
+## ü§ù Contribuindo
 
 1. Fork o projeto
 2. Crie uma branch: `git checkout -b feature/nova-funcionalidade`
@@ -222,6 +180,6 @@ curl -X POST "https://localhost:5001/api/auth/login" \
 4. Push: `git push origin feature/nova-funcionalidade`
 5. Abra um Pull Request
 
-## ?? LicenÁa
+## üìÑ Licen√ßa
 
-Este projeto est· sob a licenÁa MIT. Veja o arquivo LICENSE para mais detalhes.
+Este projeto est√° sob a licen√ßa MIT. Veja o arquivo LICENSE para mais detalhes.
