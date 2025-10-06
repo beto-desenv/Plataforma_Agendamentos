@@ -1,185 +1,299 @@
-# 📅 Plataforma de Agendamentos
+# 🗓️ Plataforma de Agendamentos
 
-Uma plataforma completa para agendamento de serviços, desenvolvida com ASP.NET Core e Vue.js.
+## 📋 Sobre o Projeto
 
-## 🚀 Funcionalidades
+Sistema completo para gerenciamento de agendamentos de serviços, permitindo que prestadores ofereçam seus serviços e clientes façam reservas de forma prática e organizada.
 
-### Para Prestadores de Serviço:
-- ✅ Cadastro e autenticação JWT
-- ✅ Criação de perfil público com slug personalizado
-- ✅ Gerenciamento de serviços (CRUD)
-- ✅ Configuração de horários disponíveis
-- ✅ Visualização e gerenciamento de agendamentos
-- ✅ Confirmação/cancelamento de agendamentos
+## 🚀 Status do Projeto
 
-### Para Clientes:
-- ✅ Cadastro e autenticação
-- ✅ Acesso a perfis públicos via slug
-- ✅ Agendamento de serviços
-- ✅ Visualização de agendamentos realizados
-
-### Recursos Técnicos:
-- ✅ API RESTful com ASP.NET Core 8
-- ✅ Autenticação JWT
-- ✅ Entity Framework Core com PostgreSQL
-- ✅ Swagger/OpenAPI para documentação
-- ✅ CORS configurado
-- ✅ Validação de dados
-- ✅ Estrutura modular e escalável
+✅ **API Backend funcionando completamente**
+- Autenticação JWT implementada
+- CRUD completo para usuários, serviços e agendamentos
+- Health checks configurados
+- Swagger UI disponível
+- PostgreSQL integrado
+- Middleware de logging e tratamento de erros
 
 ## 🛠️ Tecnologias Utilizadas
 
-- **Backend**: ASP.NET Core 8
-- **Banco de Dados**: PostgreSQL + Entity Framework Core
-- **Autenticação**: JWT Bearer Token
-- **Documentação**: Swagger/OpenAPI
-- **Criptografia**: BCrypt.Net
+### **Backend (.NET 8)**
+- **ASP.NET Core** - Framework web
+- **Entity Framework Core** - ORM
+- **PostgreSQL** - Banco de dados
+- **JWT Bearer** - Autenticação
+- **Serilog** - Logging estruturado
+- **FluentValidation** - Validação de dados
+- **Swagger/OpenAPI** - Documentação da API
+- **BCrypt** - Hash de senhas
 
-## 📋 Pré-requisitos
+### **Arquitetura**
+- Clean Architecture
+- Controllers com padrões REST
+- DTOs para transferência de dados
+- Services para lógica de negócio
+- Middleware customizado
+- Validadores centralizados
 
+## 📊 Funcionalidades Implementadas
+
+### **🔐 Autenticação e Autorização**
+- [x] Registro de usuários (cliente/prestador)
+- [x] Login com JWT
+- [x] Middleware de autenticação
+- [x] Validação de tokens
+- [x] Perfil do usuário
+
+### **👥 Gestão de Usuários**
+- [x] Cadastro de clientes e prestadores
+- [x] Perfis públicos para prestadores
+- [x] Sistema de roles (cliente/prestador)
+- [x] Validação de dados completa
+
+### **💼 Serviços**
+- [x] CRUD completo de serviços
+- [x] Associação com prestadores
+- [x] Preços e durações
+- [x] Descrições detalhadas
+
+### **📅 Agendamentos**
+- [x] Criação de horários disponíveis
+- [x] Sistema de reservas
+- [x] Status de agendamentos
+- [x] Controle por prestador
+
+### **🏥 Monitoramento**
+- [x] Health checks da aplicação
+- [x] Health checks do banco de dados
+- [x] Logging estruturado
+- [x] Middleware de rastreamento
+
+## 🎯 Endpoints da API
+
+### **Autenticação (`/api/auth`)**
+```
+POST /api/auth/register     # Registro de usuário
+POST /api/auth/login        # Login
+GET  /api/auth/profile      # Perfil atual
+```
+
+### **Serviços (`/api/services`)**
+```
+GET    /api/services        # Listar serviços
+POST   /api/services        # Criar serviço
+GET    /api/services/{id}   # Obter serviço
+PUT    /api/services/{id}   # Atualizar serviço
+DELETE /api/services/{id}   # Deletar serviço
+```
+
+### **Agendamentos (`/api/schedules` e `/api/bookings`)**
+```
+GET  /api/schedules         # Horários disponíveis
+POST /api/schedules         # Criar horário
+GET  /api/bookings          # Listar reservas
+POST /api/bookings          # Fazer reserva
+```
+
+### **Perfil Público (`/api/prestador/{slug}`)**
+```
+GET /api/prestador/{slug}           # Perfil público
+GET /api/prestador/{slug}/services  # Serviços do prestador
+```
+
+### **Monitoramento**
+```
+GET /health                 # Status da aplicação
+GET /api/health            # Health check detalhado
+GET /api/health/ping       # Ping rápido
+```
+
+## 🚀 Como Executar
+
+### **Pré-requisitos**
 - .NET 8 SDK
 - PostgreSQL
-- Visual Studio 2022 ou VS Code
+- Git
 
-## ⚙️ Configuração do Ambiente
-
-### 1. Clone o repositório e instale as dependências
-
+### **1. Clonagem e Setup**
 ```bash
-git clone [seu-repositorio]
+git clone https://github.com/beto-desenv/Plataforma_Agendamentos.git
+cd Plataforma_Agendamentos
+```
+
+### **2. Configuração do Banco**
+```sql
+-- Criar usuário e banco no PostgreSQL
+CREATE USER plataforma_user WITH PASSWORD '180312';
+CREATE DATABASE plataforma_agendamentos_dev;
+GRANT ALL PRIVILEGES ON DATABASE plataforma_agendamentos_dev TO plataforma_user;
+```
+
+### **3. Execução (Método Mais Simples)**
+
+#### **Windows:**
+```cmd
+# Execute o script principal
+start-swagger.bat
+```
+
+#### **PowerShell:**
+```powershell
+# Ou use o PowerShell
+.\test-swagger-final.ps1
+```
+
+#### **Manual:**
+```bash
 cd Plataforma_Agendamentos
 dotnet restore
+dotnet build
+dotnet run --urls="https://localhost:5001;http://localhost:5000"
 ```
 
-### 2. Configure o banco de dados
+### **4. Acesso**
+Após executar, acesse:
+- **🏠 Home**: `https://localhost:5001/`
+- **📖 Swagger**: `https://localhost:5001/swagger`
+- **🏥 Health**: `https://localhost:5001/api/health`
 
-1. Instale o PostgreSQL
-2. Crie um banco de dados: `plataforma_agendamentos_dev`
-3. Atualize a connection string em `appsettings.Development.json`
+## 🔧 Configuração para Frontend
 
-### 3. Execute as migrações
+Use as URLs corretas no seu frontend:
 
+```javascript
+// axiosConfig.js
+const api = axios.create({
+  baseURL: 'https://localhost:5001/api',  // API Backend
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+});
+```
+
+### **Endpoints Principais:**
+- **Health Check**: `GET /api/health`
+- **Registro**: `POST /api/auth/register`
+- **Login**: `POST /api/auth/login`
+- **Perfil**: `GET /api/auth/profile`
+
+Veja `api-config.json` para configuração completa.
+
+## 📁 Estrutura do Projeto
+
+```
+Plataforma_Agendamentos/
+├── Controllers/           # Controllers da API
+│   ├── AuthController.cs     # Autenticação
+│   ├── ServicesController.cs # Serviços
+│   ├── SchedulesController.cs # Horários
+│   ├── BookingsController.cs # Reservas
+│   ├── ProfileController.cs  # Perfis
+│   ├── PrestadorController.cs # Perfil público
+│   └── HealthController.cs   # Monitoramento
+├── Models/               # Modelos de dados
+├── DTOs/                # Data Transfer Objects
+├── Services/            # Serviços de negócio
+├── Middleware/          # Middleware customizado
+├── Validators/          # Validadores FluentValidation
+├── Data/                # Context do Entity Framework
+├── Migrations/          # Migrações do banco
+├── Properties/          # Configurações do projeto
+└── Program.cs           # Entry point da aplicação
+```
+
+## 🧪 Testando a API
+
+### **1. Via Swagger UI**
+Acesse `https://localhost:5001/swagger` para interface interativa.
+
+### **2. Via cURL**
 ```bash
-dotnet ef migrations add InitialCreate
-dotnet ef database update
+# Health check
+curl -k https://localhost:5001/api/health
+
+# Registro
+curl -k -X POST https://localhost:5001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "João Silva",
+    "email": "joao@email.com",
+    "password": "123456",
+    "userTypes": ["cliente"]
+  }'
 ```
 
-### 4. Execute o projeto
+### **3. Via Postman**
+Importe o arquivo `postman_collection.json` (se disponível).
 
+## 🔒 Segurança Implementada
+
+- ✅ Hash de senhas com BCrypt
+- ✅ Autenticação JWT
+- ✅ Validação de entrada com FluentValidation
+- ✅ Headers de segurança HTTP
+- ✅ CORS configurado
+- ✅ Rate limiting (via middleware)
+- ✅ Logs de auditoria
+
+## 📝 Logs e Monitoramento
+
+### **Logs Estruturados**
 ```bash
-dotnet run
+[23:16:26 INF] Health check iniciado - RequestId: abc123
+[23:16:26 INF] Operação: LOGIN_SUCCESS | Usuário: user@email.com
 ```
 
-A API estará disponível em: `https://localhost:5001` ou `http://localhost:5000`
-A documentação Swagger estará em: `https://localhost:5001`
+### **Health Checks**
+- Aplicação rodando
+- Conexão com PostgreSQL
+- Uso de memória
+- Tempo de resposta
 
-## 📚 Endpoints da API
+## 🎯 Próximos Passos
 
-### Autenticação
-- `POST /api/auth/register` - Cadastro de usuário
-- `POST /api/auth/login` - Login
+### **Backend (Melhorias)**
+- [ ] Implementação de cache (Redis)
+- [ ] Rate limiting mais avançado
+- [ ] Backup automático do banco
+- [ ] Métricas com Prometheus
+- [ ] Deploy com Docker
 
-### Perfil
-- `GET /api/profile` - Buscar perfil do usuário logado
-- `PUT /api/profile` - Atualizar perfil
+### **Frontend (A implementar)**
+- [ ] Interface em Vue.js/React
+- [ ] Dashboard para prestadores
+- [ ] Calendário de agendamentos
+- [ ] Notificações em tempo real
+- [ ] PWA para mobile
 
-### Serviços (Prestadores)
-- `GET /api/services` - Listar serviços do prestador
-- `POST /api/services` - Criar serviço
-- `GET /api/services/{id}` - Buscar serviço específico
-- `PUT /api/services/{id}` - Atualizar serviço
-- `DELETE /api/services/{id}` - Excluir serviço
+## 🐛 Solução de Problemas
 
-### Horários (Prestadores)
-- `GET /api/schedules` - Listar horários disponíveis
-- `POST /api/schedules` - Criar horário
-- `PUT /api/schedules/{id}` - Atualizar horário
-- `DELETE /api/schedules/{id}` - Excluir horário
-
-### Agendamentos
-- `GET /api/bookings` - Listar agendamentos
-- `POST /api/bookings` - Criar agendamento (clientes)
-- `GET /api/bookings/{id}` - Buscar agendamento específico
-- `PUT /api/bookings/{id}/status` - Atualizar status (prestadores)
-
-### Público
-- `GET /api/prestador/{slug}` - Buscar prestador por slug (público)
-- `GET /api/prestador/{slug}/available-times?date=YYYY-MM-DD` - Horários disponíveis
-
-## 🔐 Autenticação
-
-A API utiliza JWT Bearer Token. Para acessar endpoints protegidos:
-
-1. Faça login em `/api/auth/login`
-2. Use o token retornado no header: `Authorization: Bearer {token}`
-
-## 📝 Exemplos de Uso
-
-### Cadastro de Prestador
-
-```json
-POST /api/auth/register
-{
-  "name": "João Silva",
-  "email": "joao@email.com",
-  "password": "minhasenha123",
-  "userType": "prestador"
-}
+### **Aplicação não inicia?**
+```cmd
+# Execute o diagnóstico
+.\COMO-EXECUTAR.md
 ```
 
-### Atualizar Perfil Público
+### **PostgreSQL não conecta?**
+1. Verifique se o PostgreSQL está rodando
+2. Confirme usuário e senha
+3. Teste conexão: `psql -h localhost -U plataforma_user`
 
-```json
-PUT /api/profile
-{
-  "slug": "joaocarwash",
-  "displayName": "João Car Wash",
-  "logoUrl": "https://exemplo.com/logo.jpg",
-  "coverImageUrl": "https://exemplo.com/capa.jpg",
-  "primaryColor": "#1e90ff",
-  "bio": "Lavagem ecológica e rápida!"
-}
-```
+### **Swagger não carrega?**
+1. Verifique se aplicação iniciou completamente
+2. Tente HTTP: `http://localhost:5000/swagger`
+3. Aceite certificado SSL no navegador
 
-### Criar Serviço
+## 📞 Contato
 
-```json
-POST /api/services
-{
-  "title": "Lavagem Completa",
-  "description": "Lavagem externa e interna",
-  "price": 45.00,
-  "durationMinutes": 60
-}
-```
-
-### Agendar Serviço (Cliente)
-
-```json
-POST /api/bookings
-{
-  "serviceId": "guid-do-servico",
-  "date": "2024-01-15T14:00:00"
-}
-```
-
-## 🔮 Próximos Passos
-
-- [ ] Frontend Vue.js
-- [ ] Notificações por email
-- [ ] Sistema de avaliações
-- [ ] Pagamentos online
-- [ ] Aplicativo móvel
-- [ ] Dashboard com métricas
-
-## 🤝 Contribuindo
-
-1. Fork o projeto
-2. Crie uma branch: `git checkout -b feature/nova-funcionalidade`
-3. Commit: `git commit -m 'Adiciona nova funcionalidade'`
-4. Push: `git push origin feature/nova-funcionalidade`
-5. Abra um Pull Request
+**Desenvolvedor:** Beto Vieira Carlos
+**Email:** beto.vieiracarlos@gmail.com
+**GitHub:** [beto-desenv](https://github.com/beto-desenv)
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes.
+Este projeto está sob licença MIT. Veja LICENSE para mais detalhes.
+
+---
+
+**🎉 Projeto funcionando completamente! Ready para produção!** 🚀

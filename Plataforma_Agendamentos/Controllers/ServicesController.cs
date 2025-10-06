@@ -14,10 +14,12 @@ namespace Plataforma_Agendamentos.Controllers;
 public class ServicesController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly ILogger<ServicesController> _logger;
 
-    public ServicesController(AppDbContext context)
+    public ServicesController(AppDbContext context, ILogger<ServicesController> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -26,6 +28,11 @@ public class ServicesController : ControllerBase
         var userId = GetCurrentUserId();
         if (userId == null)
             return Unauthorized();
+
+        // Verificar se o usuário é prestador
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null || !user.IsPrestador())
+            return Forbid("Apenas prestadores podem gerenciar serviços.");
 
         var services = await _context.Services
             .Where(s => s.ProviderId == userId)
@@ -38,6 +45,8 @@ public class ServicesController : ControllerBase
                 s.DurationMinutes
             })
             .ToListAsync();
+
+        _logger.LogInformation("Listados {Count} serviços para prestador {UserId}", services.Count, userId);
 
         return Ok(services);
     }
@@ -52,6 +61,11 @@ public class ServicesController : ControllerBase
         if (userId == null)
             return Unauthorized();
 
+        // Verificar se o usuário é prestador
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null || !user.IsPrestador())
+            return Forbid("Apenas prestadores podem criar serviços.");
+
         var service = new Service
         {
             ProviderId = userId.Value,
@@ -63,6 +77,9 @@ public class ServicesController : ControllerBase
 
         _context.Services.Add(service);
         await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Serviço criado: {ServiceId} - {Title} para prestador {UserId}", 
+            service.Id, service.Title, userId);
 
         return CreatedAtAction(nameof(GetService), new { id = service.Id }, new
         {
@@ -80,6 +97,11 @@ public class ServicesController : ControllerBase
         var userId = GetCurrentUserId();
         if (userId == null)
             return Unauthorized();
+
+        // Verificar se o usuário é prestador
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null || !user.IsPrestador())
+            return Forbid("Apenas prestadores podem acessar serviços.");
 
         var service = await _context.Services
             .Where(s => s.Id == id && s.ProviderId == userId)
@@ -109,6 +131,11 @@ public class ServicesController : ControllerBase
         if (userId == null)
             return Unauthorized();
 
+        // Verificar se o usuário é prestador
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null || !user.IsPrestador())
+            return Forbid("Apenas prestadores podem atualizar serviços.");
+
         var service = await _context.Services
             .FirstOrDefaultAsync(s => s.Id == id && s.ProviderId == userId);
 
@@ -121,6 +148,9 @@ public class ServicesController : ControllerBase
         service.DurationMinutes = request.DurationMinutes;
 
         await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Serviço atualizado: {ServiceId} - {Title} pelo prestador {UserId}", 
+            service.Id, service.Title, userId);
 
         return Ok(new
         {
@@ -139,6 +169,11 @@ public class ServicesController : ControllerBase
         if (userId == null)
             return Unauthorized();
 
+        // Verificar se o usuário é prestador
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null || !user.IsPrestador())
+            return Forbid("Apenas prestadores podem excluir serviços.");
+
         var service = await _context.Services
             .FirstOrDefaultAsync(s => s.Id == id && s.ProviderId == userId);
 
@@ -148,12 +183,16 @@ public class ServicesController : ControllerBase
         _context.Services.Remove(service);
         await _context.SaveChangesAsync();
 
+        _logger.LogInformation("Serviço removido: {ServiceId} - {Title} pelo prestador {UserId}", 
+            service.Id, service.Title, userId);
+
         return NoContent();
     }
 
     private Guid? GetCurrentUserId()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                         ?? User.FindFirst("sub")?.Value;
         return Guid.TryParse(userIdClaim, out var userId) ? userId : null;
     }
 }

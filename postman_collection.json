@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "plataforma-agendamentos-api",
 		"name": "Plataforma de Agendamentos API",
-		"description": "Collection para testar todos os endpoints da API de agendamentos",
+		"description": "Collection para testar todos os endpoints da API de agendamentos com suporte a múltiplos tipos de usuário",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"auth": {
@@ -32,27 +32,6 @@
 			"name": "Autenticação",
 			"item": [
 				{
-					"name": "Cadastrar Prestador",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao@prestador.com\",\n  \"password\": \"minhasenha123\",\n  \"userType\": \"prestador\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/auth/register",
-							"host": ["{{base_url}}"],
-							"path": ["auth", "register"]
-						}
-					}
-				},
-				{
 					"name": "Cadastrar Cliente",
 					"request": {
 						"method": "POST",
@@ -64,7 +43,70 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Maria Santos\",\n  \"email\": \"maria@cliente.com\",\n  \"password\": \"minhasenha123\",\n  \"userType\": \"cliente\"\n}"
+							"raw": "{\n  \"name\": \"Maria Santos\",\n  \"email\": \"maria@cliente.com\",\n  \"password\": \"minhasenha123\",\n  \"userTypes\": [\"cliente\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "Cadastrar Prestador",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao@prestador.com\",\n  \"password\": \"minhasenha123\",\n  \"userTypes\": [\"prestador\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "Cadastrar Cliente E Prestador",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Ana Completa\",\n  \"email\": \"ana@completa.com\",\n  \"password\": \"minhasenha123\",\n  \"userTypes\": [\"cliente\", \"prestador\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "Adicionar Role Cliente (se já é prestador)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao@prestador.com\",\n  \"password\": \"minhasenha123\",\n  \"userTypes\": [\"cliente\"]\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/register",
@@ -107,6 +149,39 @@
 							"path": ["auth", "login"]
 						}
 					}
+				},
+				{
+					"name": "Adicionar Role Avulso",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"cliente\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/add-role",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "add-role"]
+						}
+					}
+				},
+				{
+					"name": "Buscar Usuário Atual",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/profile",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "profile"]
+						}
+					}
 				}
 			]
 		},
@@ -126,7 +201,7 @@
 					}
 				},
 				{
-					"name": "Atualizar Perfil",
+					"name": "Atualizar Perfil (Prestador)",
 					"request": {
 						"method": "PUT",
 						"header": [
@@ -187,44 +262,6 @@
 			]
 		},
 		{
-			"name": "Horários",
-			"item": [
-				{
-					"name": "Listar Horários",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/schedules",
-							"host": ["{{base_url}}"],
-							"path": ["schedules"]
-						}
-					}
-				},
-				{
-					"name": "Criar Horário",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"dayOfWeek\": 1,\n  \"startTime\": \"09:00:00\",\n  \"endTime\": \"17:00:00\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/schedules",
-							"host": ["{{base_url}}"],
-							"path": ["schedules"]
-						}
-					}
-				}
-			]
-		},
-		{
 			"name": "Público",
 			"item": [
 				{
@@ -236,104 +273,6 @@
 							"raw": "{{base_url}}/prestador/joaocarwash",
 							"host": ["{{base_url}}"],
 							"path": ["prestador", "joaocarwash"]
-						}
-					}
-				},
-				{
-					"name": "Horários Disponíveis",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/prestador/joaocarwash/available-times?date=2024-01-15",
-							"host": ["{{base_url}}"],
-							"path": ["prestador", "joaocarwash", "available-times"],
-							"query": [
-								{
-									"key": "date",
-									"value": "2024-01-15"
-								}
-							]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "Agendamentos",
-			"item": [
-				{
-					"name": "Listar Agendamentos",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/bookings",
-							"host": ["{{base_url}}"],
-							"path": ["bookings"]
-						}
-					}
-				},
-				{
-					"name": "Criar Agendamento (Cliente)",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"serviceId\": \"00000000-0000-0000-0000-000000000000\",\n  \"date\": \"2024-01-15T14:00:00\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/bookings",
-							"host": ["{{base_url}}"],
-							"path": ["bookings"]
-						}
-					}
-				},
-				{
-					"name": "Confirmar Agendamento (Prestador)",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "\"confirmado\""
-						},
-						"url": {
-							"raw": "{{base_url}}/bookings/00000000-0000-0000-0000-000000000000/status",
-							"host": ["{{base_url}}"],
-							"path": ["bookings", "00000000-0000-0000-0000-000000000000", "status"]
-						}
-					}
-				},
-				{
-					"name": "Cancelar Agendamento (Prestador)",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "\"cancelado\""
-						},
-						"url": {
-							"raw": "{{base_url}}/bookings/00000000-0000-0000-0000-000000000000/status",
-							"host": ["{{base_url}}"],
-							"path": ["bookings", "00000000-0000-0000-0000-000000000000", "status"]
 						}
 					}
 				}

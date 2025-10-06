@@ -14,10 +14,12 @@ namespace Plataforma_Agendamentos.Controllers;
 public class BookingsController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly ILogger<BookingsController> _logger;
 
-    public BookingsController(AppDbContext context)
+    public BookingsController(AppDbContext context, ILogger<BookingsController> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -27,20 +29,36 @@ public class BookingsController : ControllerBase
         if (userId == null)
             return Unauthorized();
 
-        var userType = GetCurrentUserType();
+        // Buscar o usuário para verificar seus roles
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            return Unauthorized();
+
+        var roles = user.GetRoles();
+        _logger.LogInformation("Usuário {UserId} possui roles: {Roles}", userId, string.Join(", ", roles));
 
         IQueryable<Booking> query = _context.Bookings
             .Include(b => b.Client)
             .Include(b => b.Service)
             .ThenInclude(s => s.Provider);
 
-        if (userType == "cliente")
+        // Se é cliente, mostrar agendamentos que fez
+        // Se é prestador, mostrar agendamentos dos seus serviços
+        // Se é ambos, mostrar todos (pode ser refinado depois)
+        if (user.IsCliente() && !user.IsPrestador())
         {
+            // Apenas cliente
             query = query.Where(b => b.ClientId == userId);
         }
-        else if (userType == "prestador")
+        else if (user.IsPrestador() && !user.IsCliente())
         {
+            // Apenas prestador
             query = query.Where(b => b.Service.ProviderId == userId);
+        }
+        else if (user.IsCliente() && user.IsPrestador())
+        {
+            // Cliente e prestador - mostrar ambos
+            query = query.Where(b => b.ClientId == userId || b.Service.ProviderId == userId);
         }
 
         var bookings = await query
@@ -49,6 +67,7 @@ public class BookingsController : ControllerBase
                 b.Id,
                 b.Date,
                 b.Status,
+                Type = b.ClientId == userId ? "cliente" : "prestador", // Indica se é agendamento feito ou recebido
                 Client = new
                 {
                     b.Client.Name,
@@ -81,8 +100,9 @@ public class BookingsController : ControllerBase
         if (userId == null)
             return Unauthorized();
 
-        var userType = GetCurrentUserType();
-        if (userType != "cliente")
+        // Verificar se o usuário tem role de cliente
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null || !user.IsCliente())
             return Forbid("Apenas clientes podem fazer agendamentos.");
 
         var service = await _context.Services
@@ -132,6 +152,9 @@ public class BookingsController : ControllerBase
             .ThenInclude(s => s.Provider)
             .FirstAsync(b => b.Id == booking.Id);
 
+        _logger.LogInformation("Agendamento criado: {BookingId} para cliente {ClientId} no serviço {ServiceId}", 
+            booking.Id, userId, request.ServiceId);
+
         return CreatedAtAction(nameof(GetBooking), new { id = booking.Id }, new
         {
             booking.Id,
@@ -163,8 +186,6 @@ public class BookingsController : ControllerBase
         if (userId == null)
             return Unauthorized();
 
-        var userType = GetCurrentUserType();
-
         var booking = await _context.Bookings
             .Include(b => b.Client)
             .Include(b => b.Service)
@@ -175,7 +196,7 @@ public class BookingsController : ControllerBase
             return NotFound();
 
         // Verificar se o usuário tem acesso a este agendamento
-        bool hasAccess = userType == "cliente" ? booking.ClientId == userId : booking.Service.ProviderId == userId;
+        bool hasAccess = booking.ClientId == userId || booking.Service.ProviderId == userId;
         if (!hasAccess)
             return Forbid();
 
@@ -210,8 +231,9 @@ public class BookingsController : ControllerBase
         if (userId == null)
             return Unauthorized();
 
-        var userType = GetCurrentUserType();
-        if (userType != "prestador")
+        // Verificar se o usuário tem role de prestador
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null || !user.IsPrestador())
             return Forbid("Apenas prestadores podem alterar o status do agendamento.");
 
         if (!new[] { "confirmado", "cancelado" }.Contains(status))
@@ -230,17 +252,16 @@ public class BookingsController : ControllerBase
         booking.Status = status;
         await _context.SaveChangesAsync();
 
+        _logger.LogInformation("Status do agendamento {BookingId} alterado para {Status} pelo prestador {ProviderId}", 
+            id, status, userId);
+
         return Ok(new { booking.Id, booking.Status });
     }
 
     private Guid? GetCurrentUserId()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                         ?? User.FindFirst("sub")?.Value;
         return Guid.TryParse(userIdClaim, out var userId) ? userId : null;
-    }
-
-    private string? GetCurrentUserType()
-    {
-        return User.FindFirst("UserType")?.Value;
     }
 }

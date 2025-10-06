@@ -13,18 +13,25 @@ namespace Plataforma_Agendamentos.Controllers;
 public class ProfileController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly ILogger<ProfileController> _logger;
 
-    public ProfileController(AppDbContext context)
+    public ProfileController(AppDbContext context, ILogger<ProfileController> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetProfile()
     {
         var userId = GetCurrentUserId();
+        _logger.LogInformation("Buscando perfil para usuário: {UserId}", userId);
+        
         if (userId == null)
-            return Unauthorized();
+        {
+            _logger.LogWarning("Token JWT inválido ou usuário não encontrado nas claims");
+            return Unauthorized("Token inválido");
+        }
 
         var user = await _context.Users
             .Include(u => u.Services)
@@ -32,14 +39,19 @@ public class ProfileController : ControllerBase
             .FirstOrDefaultAsync(u => u.Id == userId);
 
         if (user == null)
-            return NotFound();
+        {
+            _logger.LogWarning("Usuário não encontrado no banco: {UserId}", userId);
+            return NotFound("Usuário não encontrado");
+        }
+
+        _logger.LogInformation("Perfil encontrado para usuário: {UserId}", userId);
 
         return Ok(new
         {
             user.Id,
             user.Name,
             user.Email,
-            user.UserType,
+            UserTypes = user.GetRoles(),
             user.Slug,
             user.DisplayName,
             user.LogoUrl,
@@ -68,20 +80,42 @@ public class ProfileController : ControllerBase
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
     {
         var userId = GetCurrentUserId();
+        _logger.LogInformation("Atualizando perfil para usuário: {UserId}", userId);
+        
         if (userId == null)
-            return Unauthorized();
+        {
+            _logger.LogWarning("Token JWT inválido ou usuário não encontrado nas claims");
+            return Unauthorized("Token inválido");
+        }
 
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
-            return NotFound();
+        {
+            _logger.LogWarning("Usuário não encontrado no banco: {UserId}", userId);
+            return NotFound("Usuário não encontrado");
+        }
+
+        // Verificar se é prestador para atualizar perfil público
+        if (!user.IsPrestador())
+        {
+            return BadRequest("Apenas prestadores podem ter perfil público");
+        }
+
+        // Log dos dados antes da atualização
+        _logger.LogInformation("Dados ANTES da atualização - Slug: {OldSlug}, DisplayName: {OldDisplayName}", 
+            user.Slug, user.DisplayName);
 
         // Verificar se o slug já existe (se foi fornecido)
         if (!string.IsNullOrEmpty(request.Slug) && request.Slug != user.Slug)
         {
             if (await _context.Users.AnyAsync(u => u.Slug == request.Slug && u.Id != userId))
+            {
+                _logger.LogWarning("Slug já existe: {Slug}", request.Slug);
                 return BadRequest("Slug já está em uso.");
+            }
         }
 
+        // Atualizar dados
         user.Slug = request.Slug ?? user.Slug;
         user.DisplayName = request.DisplayName ?? user.DisplayName;
         user.LogoUrl = request.LogoUrl ?? user.LogoUrl;
@@ -89,14 +123,32 @@ public class ProfileController : ControllerBase
         user.PrimaryColor = request.PrimaryColor ?? user.PrimaryColor;
         user.Bio = request.Bio ?? user.Bio;
 
-        await _context.SaveChangesAsync();
+        // Log dos dados depois da atualização
+        _logger.LogInformation("Dados DEPOIS da atualização - Slug: {NewSlug}, DisplayName: {NewDisplayName}", 
+            user.Slug, user.DisplayName);
+
+        try
+        {
+            var changes = await _context.SaveChangesAsync();
+            _logger.LogInformation("Perfil atualizado com sucesso. {Changes} alterações salvas no banco", changes);
+
+            if (changes == 0)
+            {
+                _logger.LogWarning("Nenhuma alteração foi salva no banco de dados");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao salvar alterações no banco de dados");
+            return StatusCode(500, "Erro interno do servidor");
+        }
 
         return Ok(new
         {
             user.Id,
             user.Name,
             user.Email,
-            user.UserType,
+            UserTypes = user.GetRoles(),
             user.Slug,
             user.DisplayName,
             user.LogoUrl,
@@ -108,7 +160,27 @@ public class ProfileController : ControllerBase
 
     private Guid? GetCurrentUserId()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdClaim, out var userId) ? userId : null;
+        // Tentar múltiplas claims para compatibilidade
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                         ?? User.FindFirst("sub")?.Value 
+                         ?? User.FindFirst("Sub")?.Value;
+        
+        _logger.LogInformation("Claims encontradas: {Claims}", 
+            string.Join(", ", User.Claims.Select(c => $"{c.Type}={c.Value}")));
+        
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            _logger.LogWarning("UserId claim não encontrada no token JWT");
+            return null;
+        }
+
+        if (Guid.TryParse(userIdClaim, out var userId))
+        {
+            _logger.LogInformation("UserId extraído do token: {UserId}", userId);
+            return userId;
+        }
+
+        _logger.LogWarning("UserId claim não é um GUID válido: {UserIdClaim}", userIdClaim);
+        return null;
     }
 }
