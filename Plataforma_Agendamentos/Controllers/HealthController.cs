@@ -7,7 +7,7 @@ using System.Diagnostics;
 namespace Plataforma_Agendamentos.Controllers;
 
 /// <summary>
-/// Controller para verificação de saúde da API
+/// Controller para verificacao de saude da API
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -23,11 +23,11 @@ public class HealthController : BaseApiController
     }
 
     /// <summary>
-    /// Verifica o status de saúde da API e suas dependências
+    /// Verifica o status de saude da API e suas dependencias
     /// </summary>
-    /// <returns>Status detalhado de saúde</returns>
+    /// <returns>Status detalhado de saude</returns>
     /// <response code="200">API funcionando normalmente</response>
-    /// <response code="503">Serviços indisponíveis</response>
+    /// <response code="503">Servicos indisponiveis</response>
     [HttpGet]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(object), StatusCodes.Status503ServiceUnavailable)]
@@ -43,13 +43,13 @@ public class HealthController : BaseApiController
 
         try
         {
-            // 1. Verificar API básica
+            // 1. Verificar API basica
             var apiCheckStart = DateTime.UtcNow;
             healthChecks.Add(new
             {
                 name = "API",
                 status = "Healthy",
-                description = "API está respondendo",
+                description = "API esta respondendo",
                 duration = (DateTime.UtcNow - apiCheckStart).TotalMilliseconds
             });
 
@@ -65,7 +65,7 @@ public class HealthController : BaseApiController
                 {
                     name = "Database",
                     status = canConnect ? "Healthy" : "Unhealthy",
-                    description = canConnect ? $"Conectado - {userCount} usuários" : "Não foi possível conectar",
+                    description = canConnect ? $"Conectado - {userCount} usuarios" : "Nao foi possivel conectar",
                     duration = (DateTime.UtcNow - dbCheckStart).TotalMilliseconds
                 });
 
@@ -74,7 +74,7 @@ public class HealthController : BaseApiController
             }
             catch (Exception dbEx)
             {
-                _logger.LogError(dbEx, "Erro na verificação do banco de dados");
+                _logger.LogError(dbEx, "Erro na verificacao do banco de dados");
                 healthChecks.Add(new
                 {
                     name = "Database",
@@ -85,7 +85,7 @@ public class HealthController : BaseApiController
                 isHealthy = false;
             }
 
-            // 3. Verificar memória
+            // 3. Verificar memoria
             var memoryCheckStart = DateTime.UtcNow;
             var workingSet = Environment.WorkingSet;
             var memoryMB = workingSet / 1024 / 1024;
@@ -118,11 +118,11 @@ public class HealthController : BaseApiController
 
             if (isHealthy)
             {
-                return Ok(CreateSuccessResponse(result, "Todos os serviços estão funcionando"));
+                return Ok(CreateSuccessResponse(result, "Todos os servicos estao funcionando"));
             }
             else
             {
-                return StatusCode(503, CreateErrorResponse("Alguns serviços estão indisponíveis", 
+                return StatusCode(503, CreateErrorResponse("Alguns servicos estao indisponiveis", 
                     "Verifique os detalhes dos health checks"));
             }
         }
@@ -143,7 +143,7 @@ public class HealthController : BaseApiController
     }
 
     /// <summary>
-    /// Verificação rápida de disponibilidade (ping)
+    /// Verificacao rapida de disponibilidade (ping)
     /// </summary>
     /// <returns>Resposta simples de disponibilidade</returns>
     [HttpGet("ping")]
@@ -154,14 +154,14 @@ public class HealthController : BaseApiController
         {
             status = "OK",
             timestamp = DateTime.UtcNow,
-            message = "API está respondendo"
+            message = "API esta respondendo"
         });
     }
 
     /// <summary>
-    /// Informações detalhadas do sistema
+    /// Informacoes detalhadas do sistema
     /// </summary>
-    /// <returns>Informações técnicas da aplicação</returns>
+    /// <returns>Informacoes tecnicas da aplicacao</returns>
     [HttpGet("info")]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public IActionResult GetSystemInfo()
@@ -193,6 +193,6 @@ public class HealthController : BaseApiController
             }
         };
 
-        return Ok(CreateSuccessResponse(info, "Informações do sistema obtidas"));
+        return Ok(CreateSuccessResponse(info, "Informacoes do sistema obtidas"));
     }
 }

@@ -10,62 +10,94 @@ using System.Text;
 using Serilog;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using System.Globalization;
 
 // ================================================
-// PLATAFORMA DE AGENDAMENTOS - .NET 8 (CORRIGIDO)
+// PLATAFORMA DE AGENDAMENTOS - .NET 8
 // ================================================
 
-// Configurar Serilog
+// Configurar encoding UTF-8 para evitar problemas de caracteres especiais
+Console.OutputEncoding = Encoding.UTF8;
+Console.InputEncoding = Encoding.UTF8;
+
+// Configurar cultura para pt-BR
+var culture = new CultureInfo("pt-BR");
+CultureInfo.DefaultThreadCurrentCulture = culture;
+CultureInfo.DefaultThreadCurrentUICulture = culture;
+
+// Configurar Serilog com encoding correto
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
     .Enrich.FromLogContext()
-    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
+        standardErrorFromLevel: Serilog.Events.LogEventLevel.Error
+    )
     .CreateLogger();
 
 try
 {
-    Log.Information("?? Iniciando Plataforma de Agendamentos...");
+    Log.Information("Iniciando Plataforma de Agendamentos...");
     
     var builder = WebApplication.CreateBuilder(args);
 
     // Configurar Serilog
     builder.Host.UseSerilog();
 
-    Log.Information("?? Configurando serviços...");
+    // Configurar encoding para o builder
+    builder.Services.Configure<RequestLocalizationOptions>(options =>
+    {
+        options.DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("pt-BR");
+        options.SupportedCultures = new List<CultureInfo> { new CultureInfo("pt-BR") };
+        options.SupportedUICultures = new List<CultureInfo> { new CultureInfo("pt-BR") };
+    });
+
+    Log.Information("Configurando servicos...");
 
     // Configurar URLs explicitamente
     builder.WebHost.UseUrls("http://localhost:5000", "https://localhost:5001");
 
     // Add services to the container
-    builder.Services.AddControllers();
+    builder.Services.AddControllers(options =>
+    {
+        // Configurar encoding para controllers
+        options.RespectBrowserAcceptHeader = true;
+    });
+
+    // Configurar JSON com encoding UTF-8
+    builder.Services.ConfigureHttpJsonOptions(options =>
+    {
+        options.SerializerOptions.PropertyNamingPolicy = null;
+        options.SerializerOptions.WriteIndented = true;
+    });
 
     // FluentValidation
     try
     {
         builder.Services.AddFluentValidationAutoValidation();
         builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
-        Log.Information("? FluentValidation configurado");
+        Log.Information("FluentValidation configurado");
     }
     catch (Exception ex)
     {
-        Log.Warning("?? Erro ao configurar FluentValidation: {Error}", ex.Message);
+        Log.Warning("Erro ao configurar FluentValidation: {Error}", ex.Message);
     }
 
     // API Explorer
     builder.Services.AddEndpointsApiExplorer();
     
-    // Swagger
+    // Swagger sem XML comments (removido para evitar erro)
     builder.Services.AddSwaggerGen(c =>
     {
         c.SwaggerDoc("v1", new OpenApiInfo 
         { 
             Title = "Plataforma de Agendamentos API", 
             Version = "v1.0.0",
-            Description = "API completa para gerenciamento de agendamentos de serviços"
+            Description = "API completa para gerenciamento de agendamentos de servicos"
         });
         
-        // Configuração JWT no Swagger
+        // Configuracao JWT no Swagger
         c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
             Description = "JWT Authorization header usando Bearer scheme. Exemplo: \"Bearer {token}\"",
@@ -92,17 +124,21 @@ try
         });
     });
 
-    Log.Information("? Swagger configurado");
+    Log.Information("Swagger configurado");
 
     // Database Configuration
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-        ?? "Host=localhost;Database=plataforma_agendamentos_dev;Username=plataforma_user;Password=180312";
+        ?? "Host=localhost;Database=plataforma_agendamentos_dev;Username=plataforma_user;Password=180312;Encoding=UTF8;";
 
-    Log.Information("??? Configurando banco de dados: {DatabaseHost}", connectionString.Split(';')[0]);
+    Log.Information("Configurando banco de dados: {DatabaseHost}", connectionString.Split(';')[0]);
 
     builder.Services.AddDbContext<AppDbContext>(options =>
     {
-        options.UseNpgsql(connectionString);
+        options.UseNpgsql(connectionString, npgsqlOptions =>
+        {
+            // Configurar encoding para PostgreSQL
+            npgsqlOptions.CommandTimeout(30);
+        });
         
         if (builder.Environment.IsDevelopment())
         {
@@ -115,7 +151,7 @@ try
     var jwtSettings = builder.Configuration.GetSection("JwtSettings");
     var secretKey = jwtSettings["SecretKey"] ?? "chave_desenvolvimento_256_bits_nao_usar_em_producao_jamais";
     
-    Log.Information("?? Configurando autenticação JWT...");
+    Log.Information("Configurando autenticacao JWT...");
 
     builder.Services.AddAuthentication(options =>
     {
@@ -140,12 +176,12 @@ try
         {
             OnAuthenticationFailed = context =>
             {
-                Log.Warning("Falha na autenticação JWT: {Error}", context.Exception.Message);
+                Log.Warning("Falha na autenticacao JWT: {Error}", context.Exception.Message);
                 return Task.CompletedTask;
             },
             OnTokenValidated = context =>
             {
-                Log.Debug("Token JWT validado para usuário: {UserId}", context.Principal?.Identity?.Name);
+                Log.Debug("Token JWT validado para usuario: {UserId}", context.Principal?.Identity?.Name);
                 return Task.CompletedTask;
             }
         };
@@ -166,21 +202,24 @@ try
     });
 
     // Health Checks
-    Log.Information("?? Configurando health checks...");
+    Log.Information("Configurando health checks...");
     builder.Services.AddHealthChecks()
         .AddCheck("application", () =>
         {
             return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("Application is running");
         });
 
-    Log.Information("??? Construindo aplicação...");
+    Log.Information("Construindo aplicacao...");
     var app = builder.Build();
 
     // Configure the HTTP request pipeline
-    Log.Information("?? Configurando middleware pipeline...");
+    Log.Information("Configurando middleware pipeline...");
+
+    // Configurar localization
+    app.UseRequestLocalization();
 
     // Swagger
-    Log.Information("?? Configurando Swagger UI");
+    Log.Information("Configurando Swagger UI");
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
@@ -188,17 +227,18 @@ try
         c.RoutePrefix = "swagger";
         c.DisplayRequestDuration();
         c.EnableTryItOutByDefault();
+        c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
     });
 
     // Global exception handling
     try
     {
         app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
-        Log.Information("? Middleware de tratamento de erros configurado");
+        Log.Information("Middleware de tratamento de erros configurado");
     }
     catch (Exception ex)
     {
-        Log.Warning("?? Erro ao configurar middleware de erros: {Error}", ex.Message);
+        Log.Warning("Erro ao configurar middleware de erros: {Error}", ex.Message);
     }
 
     // Request logging (apenas em desenvolvimento)
@@ -207,11 +247,11 @@ try
         try
         {
             app.UseMiddleware<RequestLoggingMiddleware>();
-            Log.Information("? Middleware de logging configurado");
+            Log.Information("Middleware de logging configurado");
         }
         catch (Exception ex)
         {
-            Log.Warning("?? Erro ao configurar middleware de logging: {Error}", ex.Message);
+            Log.Warning("Erro ao configurar middleware de logging: {Error}", ex.Message);
         }
 
         app.UseDeveloperExceptionPage();
@@ -224,6 +264,7 @@ try
         context.Response.Headers["X-Frame-Options"] = "DENY";
         context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
         context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+        context.Response.Headers["Content-Type"] = "application/json; charset=utf-8";
         await next();
     });
 
@@ -235,7 +276,7 @@ try
     {
         ResponseWriter = async (context, report) =>
         {
-            context.Response.ContentType = "application/json";
+            context.Response.ContentType = "application/json; charset=utf-8";
             var response = new
             {
                 status = report.Status.ToString(),
@@ -248,20 +289,29 @@ try
                 }),
                 totalDuration = report.TotalDuration.TotalMilliseconds
             };
-            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
+            
+            var jsonBytes = Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(response, new System.Text.Json.JsonSerializerOptions 
+            { 
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            }));
+            
+            await context.Response.Body.WriteAsync(jsonBytes);
         }
     });
 
     app.UseAuthentication();
     app.UseAuthorization();
 
-    // Home endpoint com informações da API
+    // Home endpoint com informacoes da API
     app.MapGet("/", () => new
     {
-        Message = "?? Plataforma de Agendamentos API está funcionando!",
+        Message = "Plataforma de Agendamentos API esta funcionando!",
         Version = "v1.0.0",
         Environment = app.Environment.EnvironmentName,
         Timestamp = DateTime.UtcNow,
+        Encoding = "UTF-8",
+        Culture = CultureInfo.CurrentCulture.Name,
         Endpoints = new
         {
             Swagger = "/swagger",
@@ -273,28 +323,29 @@ try
             Bookings = "/api/bookings",
             Public = "/api/prestador/{slug}"
         }
-    }).WithTags("System").WithSummary("Informações da API");
+    }).WithTags("System").WithSummary("Informacoes da API");
 
     app.MapControllers();
 
-    // Log URLs da aplicação
-    Log.Information("?? ===============================================");
-    Log.Information("?? PLATAFORMA DE AGENDAMENTOS INICIADA!");
-    Log.Information("?? ===============================================");
-    Log.Information("?? URLs disponíveis:");
-    Log.Information("   ?? Home: https://localhost:5001/");
-    Log.Information("   ?? Swagger: https://localhost:5001/swagger");
-    Log.Information("   ?? Health: https://localhost:5001/health");
-    Log.Information("   ?? API: https://localhost:5001/api");
-    Log.Information("?? ===============================================");
-
+    // Log URLs da aplicacao
+    Log.Information("===============================================");
+    Log.Information("PLATAFORMA DE AGENDAMENTOS INICIADA!");
+    Log.Information("===============================================");
+    Log.Information("URLs disponiveis:");
+    Log.Information("   Home: https://localhost:5001/");
+    Log.Information("   Swagger: https://localhost:5001/swagger");
+    Log.Information("   Health: https://localhost:5001/health");
+    Log.Information("   API: https://localhost:5001/api");
+    Log.Information("Encoding configurado: UTF-8");
+    Log.Information("Cultura configurada: {Culture}", CultureInfo.CurrentCulture.Name);
+    Log.Information("===============================================");
     app.Run();
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "?? ERRO CRÍTICO: Aplicação falhou ao iniciar");
-    Console.WriteLine($"?? ERRO CRÍTICO: {ex.Message}");
-    Console.WriteLine($"?? Stack: {ex.StackTrace}");
+    Log.Fatal(ex, "ERRO CRITICO: Aplicacao falhou ao iniciar");
+    Console.WriteLine($"ERRO CRITICO: {ex.Message}");
+    Console.WriteLine($"Stack: {ex.StackTrace}");
     Console.WriteLine("Pressione qualquer tecla para sair...");
     Console.ReadKey();
     Environment.Exit(1);

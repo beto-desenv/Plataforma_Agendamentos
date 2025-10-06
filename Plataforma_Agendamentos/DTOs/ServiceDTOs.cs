@@ -39,4 +39,6 @@ public class BookingRequest
     
     [Required]
     public DateTime Date { get; set; }
+    
+    public string? Notes { get; set; }
 }
