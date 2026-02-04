@@ -26,7 +26,7 @@ namespace Plataforma_Agendamentos
                 // Configurar URLs explicitamente
                 builder.WebHost.UseUrls("http://localhost:5000", "https://localhost:5001");
 
-                Console.WriteLine("?? Configurando serviÁos...");
+                Console.WriteLine("?? Configurando servi√ßos...");
 
                 // Add services to the container.
                 builder.Services.AddControllers();
@@ -39,10 +39,10 @@ namespace Plataforma_Agendamentos
                     { 
                         Title = "Plataforma de Agendamentos API", 
                         Version = "v1",
-                        Description = "API completa para gerenciamento de agendamentos de serviÁos"
+                        Description = "API completa para gerenciamento de agendamentos de servi√ßos"
                     });
                     
-                    // ConfiguraÁ„o JWT no Swagger
+                    // Configura√ß√£o JWT no Swagger
                     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                     {
                         Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
@@ -88,7 +88,7 @@ namespace Plataforma_Agendamentos
                 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
                 var secretKey = jwtSettings["SecretKey"] ?? "sua_chave_secreta_muito_segura_com_pelo_menos_256_bits";
 
-                Console.WriteLine("?? Configurando autenticaÁ„o JWT...");
+                Console.WriteLine("?? Configurando autentica√ß√£o JWT...");
 
                 builder.Services.AddAuthentication(options =>
                 {
@@ -124,7 +124,7 @@ namespace Plataforma_Agendamentos
                     });
                 });
 
-                Console.WriteLine("??? Construindo aplicaÁ„o...");
+                Console.WriteLine("??? Construindo aplica√ß√£o...");
                 var app = builder.Build();
 
                 // Configure the HTTP request pipeline.
@@ -160,7 +160,7 @@ namespace Plataforma_Agendamentos
                 // Adicionar rota de teste na raiz
                 app.MapGet("/", () => new
                 {
-                    Message = "?? Plataforma de Agendamentos API est· funcionando!",
+                    Message = "?? Plataforma de Agendamentos API est√° funcionando!",
                     Swagger = "/swagger",
                     Version = "v1.0.0",
                     Status = "OK",
@@ -192,23 +192,23 @@ namespace Plataforma_Agendamentos
                         }
                         else
                         {
-                            Console.WriteLine("? Banco de dados j· existe e est· atualizado");
+                            Console.WriteLine("? Banco de dados j√° existe e est√° atualizado");
                         }
                     }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"? Erro ao inicializar banco de dados: {ex.Message}");
-                    Console.WriteLine("?? Verifique se o PostgreSQL est· rodando e as credenciais est„o corretas");
+                    Console.WriteLine("?? Verifique se o PostgreSQL est√° rodando e as credenciais est√£o corretas");
                 }
 
-                // Log URLs da aplicaÁ„o
+                // Log URLs da aplica√ß√£o
                 Console.WriteLine();
                 Console.WriteLine("?? ===============================================");
                 Console.WriteLine("?? PLATAFORMA DE AGENDAMENTOS INICIADA!");
                 Console.WriteLine("?? ===============================================");
                 Console.WriteLine();
-                Console.WriteLine("?? URLs disponÌveis:");
+                Console.WriteLine("?? URLs dispon√≠veis:");
                 Console.WriteLine("   ?? Home: https://localhost:5001/");
                 Console.WriteLine("   ?? Swagger: https://localhost:5001/swagger");
                 Console.WriteLine("   ?? HTTPS API: https://localhost:5001/api");
@@ -217,14 +217,14 @@ namespace Plataforma_Agendamentos
                 Console.WriteLine("?? Endpoints principais:");
                 Console.WriteLine("   POST /api/auth/register - Cadastro");
                 Console.WriteLine("   POST /api/auth/login    - Login");
-                Console.WriteLine("   GET  /api/prestador/{slug} - Perfil p˙blico");
+                Console.WriteLine("   GET  /api/prestador/{slug} - Perfil p√∫blico");
                 Console.WriteLine();
                 Console.WriteLine("?? Para testar:");
                 Console.WriteLine("   1. Acesse: https://localhost:5001/");
                 Console.WriteLine("   2. Acesse: https://localhost:5001/swagger");
                 Console.WriteLine("   3. Use a Collection do Postman");
                 Console.WriteLine();
-                Console.WriteLine("? Para parar a aplicaÁ„o: Ctrl+C");
+                Console.WriteLine("? Para parar a aplica√ß√£o: Ctrl+C");
                 Console.WriteLine("?? ===============================================");
                 Console.WriteLine();
 
@@ -232,14 +232,14 @@ namespace Plataforma_Agendamentos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"?? ERRO CRÕTICO ao iniciar aplicaÁ„o: {ex.Message}");
+                Console.WriteLine($"?? ERRO CR√çTICO ao iniciar aplica√ß√£o: {ex.Message}");
                 Console.WriteLine($"?? Stack Trace: {ex.StackTrace}");
                 Console.WriteLine();
-                Console.WriteLine("?? PossÌveis soluÁıes:");
-                Console.WriteLine("   1. Verifique se as portas 5000/5001 est„o livres");
+                Console.WriteLine("?? Poss√≠veis solu√ß√µes:");
+                Console.WriteLine("   1. Verifique se as portas 5000/5001 est√£o livres");
                 Console.WriteLine("   2. Execute como administrador");
-                Console.WriteLine("   3. Verifique se o PostgreSQL est· rodando");
-                Console.WriteLine("   4. Confirme as configuraÁıes em appsettings.json");
+                Console.WriteLine("   3. Verifique se o PostgreSQL est√° rodando");
+                Console.WriteLine("   4. Confirme as configura√ß√µes em appsettings.json");
                 Console.WriteLine();
                 Console.WriteLine("Pressione qualquer tecla para sair...");
                 Console.ReadKey();

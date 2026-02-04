@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Plataforma_Agendamentos.Constants;
 using Plataforma_Agendamentos.Data;
 using Plataforma_Agendamentos.DTOs;
 using Plataforma_Agendamentos.Models;
@@ -26,18 +27,20 @@ public class AuthController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        // Verificar se o email j· existe
-        if (await _context.Users.AnyAsync(u => u.Email == request.Email))
-            return BadRequest("Email j· est· em uso.");
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
 
-        // Validar tipo de usu·rio
-        if (request.UserType != "cliente" && request.UserType != "prestador")
-            return BadRequest("Tipo de usu·rio deve ser 'cliente' ou 'prestador'.");
+        // Verificar se o email j√° existe
+        if (await _context.Users.AnyAsync(u => u.Email == normalizedEmail))
+            return BadRequest("Email j√° est√° em uso.");
+
+        // Validar tipo de usu√°rio
+        if (request.UserType != UserTypes.Cliente && request.UserType != UserTypes.Prestador)
+            return BadRequest("Tipo de usu√°rio deve ser 'cliente' ou 'prestador'.");
 
         var user = new User
         {
             Name = request.Name,
-            Email = request.Email,
+            Email = normalizedEmail,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             UserType = request.UserType
         };
@@ -68,10 +71,11 @@ public class AuthController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
-            return Unauthorized("Credenciais inv·lidas.");
+            return Unauthorized("Credenciais inv√°lidas.");
 
         var token = _jwtService.GenerateJwtToken(user.Id.ToString(), user.Email, user.UserType);
 

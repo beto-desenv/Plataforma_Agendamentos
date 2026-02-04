@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Plataforma_Agendamentos.Constants;
 using Plataforma_Agendamentos.Data;
 using Plataforma_Agendamentos.DTOs;
+using Plataforma_Agendamentos.Extensions;
 using Plataforma_Agendamentos.Models;
-using System.Security.Claims;
 
 namespace Plataforma_Agendamentos.Controllers;
 
@@ -23,9 +24,12 @@ public class SchedulesController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetSchedules()
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
+
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem gerenciar hor√°rios.");
 
         var schedules = await _context.Schedules
             .Where(s => s.ProviderId == userId)
@@ -47,19 +51,22 @@ public class SchedulesController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
 
-        // Verificar se j· existe hor·rio para este dia da semana
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem criar hor√°rios.");
+
+        // Verificar se j√° existe hor√°rio para este dia da semana
         var existingSchedule = await _context.Schedules
             .FirstOrDefaultAsync(s => s.ProviderId == userId && s.DayOfWeek == request.DayOfWeek);
 
         if (existingSchedule != null)
-            return BadRequest("J· existe um hor·rio cadastrado para este dia da semana.");
+            return BadRequest("J√° existe um hor√°rio cadastrado para este dia da semana.");
 
         if (request.StartTime >= request.EndTime)
-            return BadRequest("Hor·rio de inÌcio deve ser anterior ao hor·rio de fim.");
+            return BadRequest("Hor√°rio de in√≠cio deve ser anterior ao hor√°rio de fim.");
 
         var schedule = new Schedule
         {
@@ -84,9 +91,12 @@ public class SchedulesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetSchedule(Guid id)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
+
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem visualizar hor√°rios pr√≥prios.");
 
         var schedule = await _context.Schedules
             .Where(s => s.Id == id && s.ProviderId == userId)
@@ -111,9 +121,12 @@ public class SchedulesController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
+
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem atualizar hor√°rios.");
 
         var schedule = await _context.Schedules
             .FirstOrDefaultAsync(s => s.Id == id && s.ProviderId == userId);
@@ -122,14 +135,14 @@ public class SchedulesController : ControllerBase
             return NotFound();
 
         if (request.StartTime >= request.EndTime)
-            return BadRequest("Hor·rio de inÌcio deve ser anterior ao hor·rio de fim.");
+            return BadRequest("Hor√°rio de in√≠cio deve ser anterior ao hor√°rio de fim.");
 
-        // Verificar se j· existe outro hor·rio para este dia da semana
+        // Verificar se j√° existe outro hor√°rio para este dia da semana
         var existingSchedule = await _context.Schedules
             .FirstOrDefaultAsync(s => s.ProviderId == userId && s.DayOfWeek == request.DayOfWeek && s.Id != id);
 
         if (existingSchedule != null)
-            return BadRequest("J· existe um hor·rio cadastrado para este dia da semana.");
+            return BadRequest("J√° existe um hor√°rio cadastrado para este dia da semana.");
 
         schedule.DayOfWeek = request.DayOfWeek;
         schedule.StartTime = request.StartTime;
@@ -149,9 +162,12 @@ public class SchedulesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteSchedule(Guid id)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
+
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem excluir hor√°rios.");
 
         var schedule = await _context.Schedules
             .FirstOrDefaultAsync(s => s.Id == id && s.ProviderId == userId);
@@ -165,9 +181,4 @@ public class SchedulesController : ControllerBase
         return NoContent();
     }
 
-    private Guid? GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdClaim, out var userId) ? userId : null;
-    }
 }

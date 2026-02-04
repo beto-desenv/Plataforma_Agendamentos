@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Plataforma_Agendamentos.Data;
 using Plataforma_Agendamentos.DTOs;
-using System.Security.Claims;
+using Plataforma_Agendamentos.Extensions;
 
 namespace Plataforma_Agendamentos.Controllers;
 
@@ -22,7 +22,7 @@ public class ProfileController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetProfile()
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
 
@@ -67,7 +67,10 @@ public class ProfileController : ControllerBase
     [HttpPut]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
     {
-        var userId = GetCurrentUserId();
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
 
@@ -75,14 +78,16 @@ public class ProfileController : ControllerBase
         if (user == null)
             return NotFound();
 
-        // Verificar se o slug j· existe (se foi fornecido)
-        if (!string.IsNullOrEmpty(request.Slug) && request.Slug != user.Slug)
+        var normalizedSlug = request.Slug?.Trim().ToLowerInvariant();
+
+        // Verificar se o slug j√° existe (se foi fornecido)
+        if (!string.IsNullOrEmpty(normalizedSlug) && normalizedSlug != user.Slug)
         {
-            if (await _context.Users.AnyAsync(u => u.Slug == request.Slug && u.Id != userId))
-                return BadRequest("Slug j· est· em uso.");
+            if (await _context.Users.AnyAsync(u => u.Slug == normalizedSlug && u.Id != userId))
+                return BadRequest("Slug j√° est√° em uso.");
         }
 
-        user.Slug = request.Slug ?? user.Slug;
+        user.Slug = normalizedSlug ?? user.Slug;
         user.DisplayName = request.DisplayName ?? user.DisplayName;
         user.LogoUrl = request.LogoUrl ?? user.LogoUrl;
         user.CoverImageUrl = request.CoverImageUrl ?? user.CoverImageUrl;
@@ -106,9 +111,4 @@ public class ProfileController : ControllerBase
         });
     }
 
-    private Guid? GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdClaim, out var userId) ? userId : null;
-    }
 }

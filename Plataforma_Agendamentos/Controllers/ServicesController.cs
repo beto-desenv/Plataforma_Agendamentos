@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Plataforma_Agendamentos.Constants;
 using Plataforma_Agendamentos.Data;
 using Plataforma_Agendamentos.DTOs;
+using Plataforma_Agendamentos.Extensions;
 using Plataforma_Agendamentos.Models;
-using System.Security.Claims;
 
 namespace Plataforma_Agendamentos.Controllers;
 
@@ -23,9 +24,12 @@ public class ServicesController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetServices()
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
+
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem gerenciar serviços.");
 
         var services = await _context.Services
             .Where(s => s.ProviderId == userId)
@@ -48,9 +52,12 @@ public class ServicesController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
+
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem criar serviços.");
 
         var service = new Service
         {
@@ -77,9 +84,12 @@ public class ServicesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetService(Guid id)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
+
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem visualizar serviços próprios.");
 
         var service = await _context.Services
             .Where(s => s.Id == id && s.ProviderId == userId)
@@ -105,9 +115,12 @@ public class ServicesController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
+
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem atualizar serviços.");
 
         var service = await _context.Services
             .FirstOrDefaultAsync(s => s.Id == id && s.ProviderId == userId);
@@ -135,9 +148,12 @@ public class ServicesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteService(Guid id)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
+
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem excluir serviços.");
 
         var service = await _context.Services
             .FirstOrDefaultAsync(s => s.Id == id && s.ProviderId == userId);
@@ -151,9 +167,4 @@ public class ServicesController : ControllerBase
         return NoContent();
     }
 
-    private Guid? GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdClaim, out var userId) ? userId : null;
-    }
 }

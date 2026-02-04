@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Plataforma_Agendamentos.Constants;
 using Plataforma_Agendamentos.Data;
 
 namespace Plataforma_Agendamentos.Controllers;
@@ -21,10 +22,10 @@ public class PrestadorController : ControllerBase
         var prestador = await _context.Users
             .Include(u => u.Services)
             .Include(u => u.Schedules)
-            .FirstOrDefaultAsync(u => u.Slug == slug && u.UserType == "prestador");
+            .FirstOrDefaultAsync(u => u.Slug == slug && u.UserType == UserTypes.Prestador);
 
         if (prestador == null)
-            return NotFound("Prestador n„o encontrado.");
+            return NotFound("Prestador n√£o encontrado.");
 
         return Ok(new
         {
@@ -57,10 +58,10 @@ public class PrestadorController : ControllerBase
     {
         var prestador = await _context.Users
             .Include(u => u.Schedules)
-            .FirstOrDefaultAsync(u => u.Slug == slug && u.UserType == "prestador");
+            .FirstOrDefaultAsync(u => u.Slug == slug && u.UserType == UserTypes.Prestador);
 
         if (prestador == null)
-            return NotFound("Prestador n„o encontrado.");
+            return NotFound("Prestador n√£o encontrado.");
 
         var dayOfWeek = (int)date.DayOfWeek;
         var schedule = prestador.Schedules.FirstOrDefault(s => s.DayOfWeek == dayOfWeek);
@@ -68,15 +69,15 @@ public class PrestadorController : ControllerBase
         if (schedule == null)
             return Ok(new { AvailableTimes = new List<string>() });
 
-        // Buscar agendamentos j· confirmados para esta data
+        // Buscar agendamentos j√° confirmados para esta data
         var bookedTimes = await _context.Bookings
             .Where(b => b.Service.ProviderId == prestador.Id &&
                        b.Date.Date == date.Date &&
-                       b.Status != "cancelado")
+                       b.Status != BookingStatuses.Cancelado)
             .Select(b => b.Date.TimeOfDay)
             .ToListAsync();
 
-        // Gerar hor·rios disponÌveis de 30 em 30 minutos
+        // Gerar hor√°rios dispon√≠veis de 30 em 30 minutos
         var availableTimes = new List<string>();
         var currentTime = schedule.StartTime;
         var endTime = schedule.EndTime;
