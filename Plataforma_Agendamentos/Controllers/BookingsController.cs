@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Plataforma_Agendamentos.Constants;
 using Plataforma_Agendamentos.Data;
 using Plataforma_Agendamentos.DTOs;
+using Plataforma_Agendamentos.Extensions;
 using Plataforma_Agendamentos.Models;
-using System.Security.Claims;
 
 namespace Plataforma_Agendamentos.Controllers;
 
@@ -23,22 +24,22 @@ public class BookingsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetBookings()
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
 
-        var userType = GetCurrentUserType();
+        var userType = User.GetUserType();
 
         IQueryable<Booking> query = _context.Bookings
             .Include(b => b.Client)
             .Include(b => b.Service)
             .ThenInclude(s => s.Provider);
 
-        if (userType == "cliente")
+        if (userType == UserTypes.Cliente)
         {
             query = query.Where(b => b.ClientId == userId);
         }
-        else if (userType == "prestador")
+        else if (userType == UserTypes.Prestador)
         {
             query = query.Where(b => b.Service.ProviderId == userId);
         }
@@ -77,22 +78,25 @@ public class BookingsController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
 
-        var userType = GetCurrentUserType();
-        if (userType != "cliente")
+        var userType = User.GetUserType();
+        if (userType != UserTypes.Cliente)
             return Forbid("Apenas clientes podem fazer agendamentos.");
+
+        if (request.Date <= DateTime.Now)
+            return BadRequest("A data do agendamento deve ser futura.");
 
         var service = await _context.Services
             .Include(s => s.Provider)
             .FirstOrDefaultAsync(s => s.Id == request.ServiceId);
 
         if (service == null)
-            return BadRequest("ServiÁo n„o encontrado.");
+            return BadRequest("Servi√ßo n√£o encontrado.");
 
-        // Verificar se a data/hora est· disponÌvel
+        // Verificar se a data/hora est√° dispon√≠vel
         var dayOfWeek = (int)request.Date.DayOfWeek;
         var timeOfDay = request.Date.TimeOfDay;
 
@@ -103,23 +107,23 @@ public class BookingsController : ControllerBase
                                     s.EndTime > timeOfDay);
 
         if (schedule == null)
-            return BadRequest("Hor·rio n„o disponÌvel para este prestador.");
+            return BadRequest("Hor√°rio n√£o dispon√≠vel para este prestador.");
 
-        // Verificar se j· existe agendamento para este hor·rio
+        // Verificar se j√° existe agendamento para este hor√°rio
         var existingBooking = await _context.Bookings
             .AnyAsync(b => b.ServiceId == request.ServiceId && 
                           b.Date == request.Date && 
-                          b.Status != "cancelado");
+                          b.Status != BookingStatuses.Cancelado);
 
         if (existingBooking)
-            return BadRequest("Este hor·rio j· est· ocupado.");
+            return BadRequest("Este hor√°rio j√° est√° ocupado.");
 
         var booking = new Booking
         {
             ClientId = userId.Value,
             ServiceId = request.ServiceId,
             Date = request.Date,
-            Status = "pendente"
+            Status = BookingStatuses.Pendente
         };
 
         _context.Bookings.Add(booking);
@@ -159,11 +163,11 @@ public class BookingsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetBooking(Guid id)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
 
-        var userType = GetCurrentUserType();
+        var userType = User.GetUserType();
 
         var booking = await _context.Bookings
             .Include(b => b.Client)
@@ -174,8 +178,8 @@ public class BookingsController : ControllerBase
         if (booking == null)
             return NotFound();
 
-        // Verificar se o usu·rio tem acesso a este agendamento
-        bool hasAccess = userType == "cliente" ? booking.ClientId == userId : booking.Service.ProviderId == userId;
+        // Verificar se o usu√°rio tem acesso a este agendamento
+        bool hasAccess = userType == UserTypes.Cliente ? booking.ClientId == userId : booking.Service.ProviderId == userId;
         if (!hasAccess)
             return Forbid();
 
@@ -206,15 +210,19 @@ public class BookingsController : ControllerBase
     [HttpPut("{id}/status")]
     public async Task<IActionResult> UpdateBookingStatus(Guid id, [FromBody] string status)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
 
-        var userType = GetCurrentUserType();
-        if (userType != "prestador")
+        var userType = User.GetUserType();
+        if (userType != UserTypes.Prestador)
             return Forbid("Apenas prestadores podem alterar o status do agendamento.");
 
-        if (!new[] { "confirmado", "cancelado" }.Contains(status))
+        if (string.IsNullOrWhiteSpace(status))
+            return BadRequest("Status deve ser 'confirmado' ou 'cancelado'.");
+
+        var normalizedStatus = status.Trim().ToLowerInvariant();
+        if (normalizedStatus != BookingStatuses.Confirmado && normalizedStatus != BookingStatuses.Cancelado)
             return BadRequest("Status deve ser 'confirmado' ou 'cancelado'.");
 
         var booking = await _context.Bookings
@@ -227,20 +235,9 @@ public class BookingsController : ControllerBase
         if (booking.Service.ProviderId != userId)
             return Forbid();
 
-        booking.Status = status;
+        booking.Status = normalizedStatus;
         await _context.SaveChangesAsync();
 
         return Ok(new { booking.Id, booking.Status });
-    }
-
-    private Guid? GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdClaim, out var userId) ? userId : null;
-    }
-
-    private string? GetCurrentUserType()
-    {
-        return User.FindFirst("UserType")?.Value;
     }
 }

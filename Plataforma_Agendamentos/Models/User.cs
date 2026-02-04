@@ -21,7 +21,7 @@ public class User
     [MaxLength(20)]
     public string UserType { get; set; } = string.Empty; // cliente ou prestador
 
-    // Perfil público
+    // Perfil pÃºblico
     [MaxLength(100)]
     public string? Slug { get; set; }
     
