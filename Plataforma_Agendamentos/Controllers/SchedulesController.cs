@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Plataforma_Agendamentos.Constants;
 using Plataforma_Agendamentos.Data;
 using Plataforma_Agendamentos.DTOs;
+using Plataforma_Agendamentos.Extensions;
 using Plataforma_Agendamentos.Models;
-using System.Security.Claims;
 
 namespace Plataforma_Agendamentos.Controllers;
 
@@ -14,25 +15,21 @@ namespace Plataforma_Agendamentos.Controllers;
 public class SchedulesController : ControllerBase
 {
     private readonly AppDbContext _context;
-    private readonly ILogger<SchedulesController> _logger;
 
-    public SchedulesController(AppDbContext context, ILogger<SchedulesController> logger)
+    public SchedulesController(AppDbContext context)
     {
         _context = context;
-        _logger = logger;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetSchedules()
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
 
-        // Verificar se o usu·rio È prestador
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null || !user.IsPrestador())
-            return Forbid("Apenas prestadores podem gerenciar hor·rios.");
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem gerenciar hor√°rios.");
 
         var schedules = await _context.Schedules
             .Where(s => s.ProviderId == userId)
@@ -45,8 +42,6 @@ public class SchedulesController : ControllerBase
             })
             .ToListAsync();
 
-        _logger.LogInformation("Listados {Count} hor·rios para prestador {UserId}", schedules.Count, userId);
-
         return Ok(schedules);
     }
 
@@ -56,24 +51,22 @@ public class SchedulesController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
 
-        // Verificar se o usu·rio È prestador
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null || !user.IsPrestador())
-            return Forbid("Apenas prestadores podem criar hor·rios.");
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem criar hor√°rios.");
 
-        // Verificar se j· existe hor·rio para este dia da semana
+        // Verificar se j√° existe hor√°rio para este dia da semana
         var existingSchedule = await _context.Schedules
             .FirstOrDefaultAsync(s => s.ProviderId == userId && s.DayOfWeek == request.DayOfWeek);
 
         if (existingSchedule != null)
-            return BadRequest("J· existe um hor·rio cadastrado para este dia da semana.");
+            return BadRequest("J√° existe um hor√°rio cadastrado para este dia da semana.");
 
         if (request.StartTime >= request.EndTime)
-            return BadRequest("Hor·rio de inÌcio deve ser anterior ao hor·rio de fim.");
+            return BadRequest("Hor√°rio de in√≠cio deve ser anterior ao hor√°rio de fim.");
 
         var schedule = new Schedule
         {
@@ -85,9 +78,6 @@ public class SchedulesController : ControllerBase
 
         _context.Schedules.Add(schedule);
         await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Hor·rio criado: {ScheduleId} para dia {DayOfWeek} ({StartTime}-{EndTime}) pelo prestador {UserId}", 
-            schedule.Id, request.DayOfWeek, request.StartTime, request.EndTime, userId);
 
         return CreatedAtAction(nameof(GetSchedule), new { id = schedule.Id }, new
         {
@@ -101,14 +91,12 @@ public class SchedulesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetSchedule(Guid id)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
 
-        // Verificar se o usu·rio È prestador
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null || !user.IsPrestador())
-            return Forbid("Apenas prestadores podem acessar hor·rios.");
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem visualizar hor√°rios pr√≥prios.");
 
         var schedule = await _context.Schedules
             .Where(s => s.Id == id && s.ProviderId == userId)
@@ -133,14 +121,12 @@ public class SchedulesController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
 
-        // Verificar se o usu·rio È prestador
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null || !user.IsPrestador())
-            return Forbid("Apenas prestadores podem atualizar hor·rios.");
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem atualizar hor√°rios.");
 
         var schedule = await _context.Schedules
             .FirstOrDefaultAsync(s => s.Id == id && s.ProviderId == userId);
@@ -149,23 +135,20 @@ public class SchedulesController : ControllerBase
             return NotFound();
 
         if (request.StartTime >= request.EndTime)
-            return BadRequest("Hor·rio de inÌcio deve ser anterior ao hor·rio de fim.");
+            return BadRequest("Hor√°rio de in√≠cio deve ser anterior ao hor√°rio de fim.");
 
-        // Verificar se j· existe outro hor·rio para este dia da semana
+        // Verificar se j√° existe outro hor√°rio para este dia da semana
         var existingSchedule = await _context.Schedules
             .FirstOrDefaultAsync(s => s.ProviderId == userId && s.DayOfWeek == request.DayOfWeek && s.Id != id);
 
         if (existingSchedule != null)
-            return BadRequest("J· existe um hor·rio cadastrado para este dia da semana.");
+            return BadRequest("J√° existe um hor√°rio cadastrado para este dia da semana.");
 
         schedule.DayOfWeek = request.DayOfWeek;
         schedule.StartTime = request.StartTime;
         schedule.EndTime = request.EndTime;
 
         await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Hor·rio atualizado: {ScheduleId} para dia {DayOfWeek} ({StartTime}-{EndTime}) pelo prestador {UserId}", 
-            schedule.Id, request.DayOfWeek, request.StartTime, request.EndTime, userId);
 
         return Ok(new
         {
@@ -179,14 +162,12 @@ public class SchedulesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteSchedule(Guid id)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
 
-        // Verificar se o usu·rio È prestador
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null || !user.IsPrestador())
-            return Forbid("Apenas prestadores podem excluir hor·rios.");
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem excluir hor√°rios.");
 
         var schedule = await _context.Schedules
             .FirstOrDefaultAsync(s => s.Id == id && s.ProviderId == userId);
@@ -197,15 +178,7 @@ public class SchedulesController : ControllerBase
         _context.Schedules.Remove(schedule);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Hor·rio removido: {ScheduleId} pelo prestador {UserId}", id, userId);
-
         return NoContent();
     }
 
-    private Guid? GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
-                         ?? User.FindFirst("sub")?.Value;
-        return Guid.TryParse(userIdClaim, out var userId) ? userId : null;
-    }
 }

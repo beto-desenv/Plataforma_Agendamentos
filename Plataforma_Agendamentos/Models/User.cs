@@ -21,7 +21,7 @@ public class User
     [MaxLength(20)]
     public string UserType { get; set; } = string.Empty; // Voltando temporariamente ao singular
 
-    // Perfil público (só para prestadores)
+    // Perfil pÃºblico (sÃ³ para prestadores)
     [MaxLength(100)]
     public string? Slug { get; set; }
     
@@ -37,37 +37,6 @@ public class User
     
     public string? Bio { get; set; }
 
-    // Navigation properties
     public ICollection<Service> Services { get; set; } = new List<Service>();
     public ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
-    
-    // Métodos helpers para compatibilidade com multi-role
-    public bool IsCliente() => UserType == "cliente" || UserType.Contains("cliente");
-    public bool IsPrestador() => UserType == "prestador" || UserType.Contains("prestador");
-    public bool HasRole(string role) => UserType == role || UserType.Contains(role);
-    
-    public List<string> GetRoles()
-    {
-        // Se for JSON, tentar deserializar
-        if (UserType.StartsWith("[") && UserType.EndsWith("]"))
-        {
-            try
-            {
-                return System.Text.Json.JsonSerializer.Deserialize<List<string>>(UserType) ?? new List<string> { UserType };
-            }
-            catch
-            {
-                return new List<string> { UserType };
-            }
-        }
-        
-        // Se for string simples, retornar como array
-        return new List<string> { UserType };
-    }
-    
-    public void SetRoles(List<string> roles)
-    {
-        // Por enquanto, usar apenas o primeiro role
-        UserType = roles.FirstOrDefault() ?? "cliente";
-    }
 }

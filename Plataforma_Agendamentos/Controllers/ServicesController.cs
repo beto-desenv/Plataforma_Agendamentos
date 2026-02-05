@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Plataforma_Agendamentos.Constants;
 using Plataforma_Agendamentos.Data;
 using Plataforma_Agendamentos.DTOs;
+using Plataforma_Agendamentos.Extensions;
 using Plataforma_Agendamentos.Models;
-using System.Security.Claims;
 
 namespace Plataforma_Agendamentos.Controllers;
 
@@ -14,25 +15,21 @@ namespace Plataforma_Agendamentos.Controllers;
 public class ServicesController : ControllerBase
 {
     private readonly AppDbContext _context;
-    private readonly ILogger<ServicesController> _logger;
 
-    public ServicesController(AppDbContext context, ILogger<ServicesController> logger)
+    public ServicesController(AppDbContext context)
     {
         _context = context;
-        _logger = logger;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetServices()
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
 
-        // Verificar se o usuário é prestador
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null || !user.IsPrestador())
-            return Forbid("Apenas prestadores podem gerenciar serviços.");
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem gerenciar serviÃ§os.");
 
         var services = await _context.Services
             .Where(s => s.ProviderId == userId)
@@ -46,8 +43,6 @@ public class ServicesController : ControllerBase
             })
             .ToListAsync();
 
-        _logger.LogInformation("Listados {Count} serviços para prestador {UserId}", services.Count, userId);
-
         return Ok(services);
     }
 
@@ -57,14 +52,12 @@ public class ServicesController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
 
-        // Verificar se o usuário é prestador
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null || !user.IsPrestador())
-            return Forbid("Apenas prestadores podem criar serviços.");
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem criar serviÃ§os.");
 
         var service = new Service
         {
@@ -77,9 +70,6 @@ public class ServicesController : ControllerBase
 
         _context.Services.Add(service);
         await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Serviço criado: {ServiceId} - {Title} para prestador {UserId}", 
-            service.Id, service.Title, userId);
 
         return CreatedAtAction(nameof(GetService), new { id = service.Id }, new
         {
@@ -94,14 +84,12 @@ public class ServicesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetService(Guid id)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
 
-        // Verificar se o usuário é prestador
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null || !user.IsPrestador())
-            return Forbid("Apenas prestadores podem acessar serviços.");
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem visualizar serviÃ§os prÃ³prios.");
 
         var service = await _context.Services
             .Where(s => s.Id == id && s.ProviderId == userId)
@@ -127,14 +115,12 @@ public class ServicesController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
 
-        // Verificar se o usuário é prestador
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null || !user.IsPrestador())
-            return Forbid("Apenas prestadores podem atualizar serviços.");
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem atualizar serviÃ§os.");
 
         var service = await _context.Services
             .FirstOrDefaultAsync(s => s.Id == id && s.ProviderId == userId);
@@ -149,9 +135,6 @@ public class ServicesController : ControllerBase
 
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Serviço atualizado: {ServiceId} - {Title} pelo prestador {UserId}", 
-            service.Id, service.Title, userId);
-
         return Ok(new
         {
             service.Id,
@@ -165,14 +148,12 @@ public class ServicesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteService(Guid id)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
         if (userId == null)
             return Unauthorized();
 
-        // Verificar se o usuário é prestador
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null || !user.IsPrestador())
-            return Forbid("Apenas prestadores podem excluir serviços.");
+        if (User.GetUserType() != UserTypes.Prestador)
+            return Forbid("Apenas prestadores podem excluir serviÃ§os.");
 
         var service = await _context.Services
             .FirstOrDefaultAsync(s => s.Id == id && s.ProviderId == userId);
@@ -183,16 +164,7 @@ public class ServicesController : ControllerBase
         _context.Services.Remove(service);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Serviço removido: {ServiceId} - {Title} pelo prestador {UserId}", 
-            service.Id, service.Title, userId);
-
         return NoContent();
     }
 
-    private Guid? GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
-                         ?? User.FindFirst("sub")?.Value;
-        return Guid.TryParse(userIdClaim, out var userId) ? userId : null;
-    }
 }
