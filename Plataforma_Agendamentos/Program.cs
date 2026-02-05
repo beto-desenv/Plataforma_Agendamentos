@@ -23,8 +23,12 @@ namespace Plataforma_Agendamentos
                 builder.Logging.AddConsole();
                 builder.Logging.AddDebug();
                 
-                // Configurar URLs explicitamente
-                builder.WebHost.UseUrls("http://localhost:5000", "https://localhost:5001");
+                // Configurar URLs explicitamente apenas quando ASPNETCORE_URLS não estiver definido
+                var configuredUrls = builder.Configuration["ASPNETCORE_URLS"];
+                if (string.IsNullOrWhiteSpace(configuredUrls))
+                {
+                    builder.WebHost.UseUrls("http://localhost:5000", "https://localhost:5001");
+                }
 
                 Console.WriteLine("?? Configurando serviços...");
 

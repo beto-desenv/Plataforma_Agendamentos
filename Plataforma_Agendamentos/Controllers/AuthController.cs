@@ -33,8 +33,12 @@ public class AuthController : ControllerBase
         if (await _context.Users.AnyAsync(u => u.Email == normalizedEmail))
             return BadRequest("Email já está em uso.");
 
+        var userType = request.UserTypes.FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(userType))
+            return BadRequest("Tipo de usuário deve ser 'cliente' ou 'prestador'.");
+
         // Validar tipo de usuário
-        if (request.UserType != UserTypes.Cliente && request.UserType != UserTypes.Prestador)
+        if (userType != UserTypes.Cliente && userType != UserTypes.Prestador)
             return BadRequest("Tipo de usuário deve ser 'cliente' ou 'prestador'.");
 
         var user = new User
@@ -42,7 +46,7 @@ public class AuthController : ControllerBase
             Name = request.Name,
             Email = normalizedEmail,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            UserType = request.UserType
+            UserType = userType
         };
 
         _context.Users.Add(user);
