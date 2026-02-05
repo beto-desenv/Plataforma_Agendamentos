@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Plataforma_Agendamentos.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class AddUserTypeSpecificFieldsToExistingTable : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -20,12 +20,34 @@ namespace Plataforma_Agendamentos.Migrations
                     Email = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     PasswordHash = table.Column<string>(type: "text", nullable: false),
                     UserType = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    TelefoneCliente = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
+                    DataNascimento = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    EnderecoCliente = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    PreferenciasNotificacao = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    CPF = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    TotalAgendamentosCliente = table.Column<int>(type: "integer", nullable: false),
+                    UltimoAgendamento = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     Slug = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     DisplayName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     LogoUrl = table.Column<string>(type: "text", nullable: true),
                     CoverImageUrl = table.Column<string>(type: "text", nullable: true),
-                    PrimaryColor = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true),
-                    Bio = table.Column<string>(type: "text", nullable: true)
+                    PrimaryColor = table.Column<string>(type: "character varying(7)", maxLength: 7, nullable: true),
+                    Bio = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    CNPJ = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
+                    EnderecoPrestador = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    TelefonePrestador = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
+                    Site = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    AvaliacaoMedia = table.Column<decimal>(type: "numeric(3,2)", nullable: false),
+                    TotalAvaliacoes = table.Column<int>(type: "integer", nullable: false),
+                    TotalServicos = table.Column<int>(type: "integer", nullable: false),
+                    TotalAgendamentosPrestador = table.Column<int>(type: "integer", nullable: false),
+                    AceitaAgendamentoImediato = table.Column<bool>(type: "boolean", nullable: false),
+                    HorasAntecedenciaMinima = table.Column<int>(type: "integer", nullable: false),
+                    PerfilAtivo = table.Column<bool>(type: "boolean", nullable: false),
+                    HorarioInicioSemana = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true),
+                    HorarioFimSemana = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true)
                 },
                 constraints: table =>
                 {

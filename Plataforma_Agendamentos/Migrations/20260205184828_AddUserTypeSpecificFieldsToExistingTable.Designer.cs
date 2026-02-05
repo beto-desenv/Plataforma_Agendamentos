@@ -12,8 +12,8 @@ using Plataforma_Agendamentos.Data;
 namespace Plataforma_Agendamentos.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251004234625_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260205184828_AddUserTypeSpecificFieldsToExistingTable")]
+    partial class AddUserTypeSpecificFieldsToExistingTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -115,11 +115,32 @@ namespace Plataforma_Agendamentos.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("AceitaAgendamentoImediato")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("AvaliacaoMedia")
+                        .HasColumnType("decimal(3,2)");
+
                     b.Property<string>("Bio")
-                        .HasColumnType("text");
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("CNPJ")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("CPF")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("CoverImageUrl")
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DataNascimento")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DisplayName")
                         .HasMaxLength(100)
@@ -129,6 +150,25 @@ namespace Plataforma_Agendamentos.Migrations
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
+
+                    b.Property<string>("EnderecoCliente")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("EnderecoPrestador")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("HorarioFimSemana")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("HorarioInicioSemana")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<int>("HorasAntecedenciaMinima")
+                        .HasColumnType("integer");
 
                     b.Property<string>("LogoUrl")
                         .HasColumnType("text");
@@ -142,13 +182,50 @@ namespace Plataforma_Agendamentos.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("PerfilAtivo")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("PreferenciasNotificacao")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<string>("PrimaryColor")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)");
+
+                    b.Property<string>("Site")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Slug")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<string>("TelefoneCliente")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("TelefonePrestador")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("TotalAgendamentosCliente")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TotalAgendamentosPrestador")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TotalAvaliacoes")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TotalServicos")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UltimoAgendamento")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UserType")
                         .IsRequired()

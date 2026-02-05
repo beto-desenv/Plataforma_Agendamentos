@@ -20,14 +20,16 @@ public class AppDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.Email).IsUnique();
             entity.HasIndex(e => e.Slug).IsUnique();
+            
+            // Configurar campos decimais
+            entity.Property(e => e.AvaliacaoMedia).HasColumnType("decimal(3,2)");
         });
 
         // Service configurations
         modelBuilder.Entity<Service>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.Price)
-                .HasColumnType("decimal(10,2)");
+            entity.Property(e => e.Price).HasColumnType("decimal(10,2)");
         });
 
         // Schedule configurations

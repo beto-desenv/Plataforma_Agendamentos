@@ -1,405 +1,824 @@
-# 🗓️ Plataforma de Agendamentos
+# Plataforma de Agendamentos
 
-## 📋 Sobre o Projeto
+Sistema completo para gerenciamento de agendamentos de servicos, permitindo que prestadores oferecam seus servicos e clientes facam reservas de forma pratica e organizada.
 
-Sistema completo para gerenciamento de agendamentos de serviços, permitindo que prestadores ofereçam seus serviços e clientes façam reservas de forma prática e organizada.
+## Status do Projeto
 
-## 🚀 Status do Projeto
-
-✅ **API Backend funcionando completamente**
-- Autenticação JWT implementada
-- CRUD completo para usuários, serviços e agendamentos
-- Health checks configurados
-- Swagger UI disponível
-- PostgreSQL integrado
+**API Backend 100% funcional** com:
+- Autenticacao JWT + BCrypt
+- CRUD completo para usuarios (cliente/prestador), servicos e agendamentos
+- PostgreSQL + Entity Framework
+- Swagger UI para documentacao
+- Health checks e monitoramento
 - Middleware de logging e tratamento de erros
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias
 
-### **Backend (.NET 8)**
-- **ASP.NET Core** - Framework web
-- **Entity Framework Core** - ORM
-- **PostgreSQL** - Banco de dados
-- **JWT Bearer** - Autenticação
-- **Serilog** - Logging estruturado
-- **FluentValidation** - Validação de dados
-- **Swagger/OpenAPI** - Documentação da API
-- **BCrypt** - Hash de senhas
+**Backend (.NET 8):**
+- ASP.NET Core - Framework web
+- Entity Framework Core - ORM
+- PostgreSQL - Banco de dados
+- JWT Bearer - Autenticacao
+- Serilog - Logging estruturado
+- FluentValidation - Validacao de dados
+- Swagger/OpenAPI - Documentacao
+- BCrypt - Hash de senhas
 
-### **Arquitetura**
-- Clean Architecture
-- Controllers com padrões REST
-- DTOs para transferência de dados
-- Services para lógica de negócio
-- Middleware customizado
-- Validadores centralizados
+## Papeis de Usuario
 
-## 📊 Funcionalidades Implementadas
+### Cliente (`cliente`)
+Usuario final que agenda servicos.
 
-### **🔐 Autenticação e Autorização**
-- [x] Registro de usuários (cliente/prestador)
-- [x] Login com JWT
-- [x] Middleware de autenticação
-- [x] Validação de tokens
-- [x] Perfil do usuário
+**Funcionalidades:**
+- Cadastro e login
+- Atualizacao de perfil (telefone, endereco, CPF, data de nascimento)
+- Listagem de servicos disponiveis
+- Criacao de agendamentos
+- Visualizacao de agendamentos proprios
 
-### **👥 Gestão de Usuários**
-- [x] Cadastro de clientes e prestadores
-- [x] Perfis públicos para prestadores
-- [x] Sistema de roles (cliente/prestador)
-- [x] Validação de dados completa
+**Campos especificos:**
+- `TelefoneCliente`
+- `DataNascimento`
+- `EnderecoCliente`
+- `CPF`
+- `PreferenciasNotificacao`
+- `TotalAgendamentosCliente`
+- `UltimoAgendamento`
 
-### **💼 Serviços**
-- [x] CRUD completo de serviços
-- [x] Associação com prestadores
-- [x] Preços e durações
-- [x] Descrições detalhadas
+### Prestador (`prestador`)
+Profissional ou empresa que oferece servicos.
 
-### **📅 Agendamentos**
-- [x] Criação de horários disponíveis
-- [x] Sistema de reservas
-- [x] Status de agendamentos
-- [x] Controle por prestador
+**Funcionalidades:**
+- Cadastro e login
+- Atualizacao de perfil completo (slug, bio, logo, cores, etc)
+- Gestao de servicos (CRUD)
+- Gestao de horarios disponiveis (CRUD)
+- Visualizacao de reservas recebidas
+- Atualizacao de status de agendamento
+- Perfil publico com slug
 
-### **🏥 Monitoramento**
-- [x] Health checks da aplicação
-- [x] Health checks do banco de dados
-- [x] Logging estruturado
-- [x] Middleware de rastreamento
+**Campos especificos:**
+- `Slug` (URL personalizada)
+- `DisplayName` (nome de exibicao)
+- `Bio` (biografia/descricao)
+- `LogoUrl` (logo do negocio)
+- `CoverImageUrl` (imagem de capa)
+- `PrimaryColor` (cor principal da marca)
+- `CNPJ`
+- `TelefonePrestador`
+- `EnderecoPrestador`
+- `Site`
+- `AvaliacaoMedia`
+- `TotalServicos`
+- `TotalAgendamentosPrestador`
+- `AceitaAgendamentoImediato`
+- `HorasAntecedenciaMinima`
+- `PerfilAtivo`
+- `HorarioInicioSemana`
+- `HorarioFimSemana`
 
-## 👥 Papéis (roles) e suas responsabilidades
+## Fluxo Completo de Uso
 
-### **Cliente (`cliente`)**
-**O que é:** usuário final que agenda serviços.  
-**Para que serve:** permitir que pessoas encontrem serviços e criem reservas.  
-**Funcionalidades associadas:**
-- Cadastro e login com JWT.
-- Acesso ao próprio perfil.
-- Listagem de serviços disponíveis.
-- Criação de agendamentos.
-- Visualização de seus próprios agendamentos.  
-**APIs principais:** `/api/auth`, `/api/services`, `/api/schedules`, `/api/bookings`, `/api/auth/profile`.
+### 1. Criar Usuario Cliente
 
-### **Prestador (`prestador`)**
-**O que é:** profissional ou empresa que oferece serviços.  
-**Para que serve:** publicar serviços, disponibilizar horários e administrar reservas.  
-**Funcionalidades associadas:**
-- Cadastro e login com JWT.
-- Gestão de serviços (CRUD).
-- Gestão de horários disponíveis (CRUD).
-- Visualização de reservas recebidas.
-- Atualização de status de agendamento (confirmar/cancelar).
-- Perfil público com slug e serviços publicados.  
-**APIs principais:** `/api/auth`, `/api/services`, `/api/schedules`, `/api/bookings`, `/api/prestador/{slug}`.
+**Endpoint:** `POST /api/auth/register`
 
-## 🧩 Funcionalidades da API (o que são e para que servem)
-
-### **Autenticação e perfis**
-- **Registro**: cria usuários com tipo (`cliente` ou `prestador`) e retorna JWT.  
-  **Serve para** criar contas e autenticar chamadas futuras.
-- **Login**: valida credenciais e retorna JWT.  
-  **Serve para** autenticar usuários existentes.
-- **Perfil**: retorna dados do usuário autenticado.  
-  **Serve para** exibir informações básicas no front-end.
-
-### **Serviços**
-- **CRUD de serviços**: prestadores podem criar, editar, listar e remover serviços.  
-  **Serve para** expor ofertas com preço/duração/descrição.
-
-### **Horários (Schedules)**
-- **CRUD de horários**: prestadores definem dias da semana e janelas de atendimento.  
-  **Serve para** limitar reservas a períodos disponíveis.
-
-### **Agendamentos (Bookings)**
-- **Criação de reserva**: clientes reservam serviços em horários válidos.  
-  **Serve para** garantir disponibilidade e evitar conflitos.
-- **Atualização de status**: prestadores confirmam ou cancelam agendamentos.  
-  **Serve para** controlar o ciclo do atendimento.
-
-### **Perfil público**
-- **Perfil por slug**: expõe dados públicos do prestador e serviços.  
-  **Serve para** páginas de divulgação compartilháveis.
-
-### **Monitoramento**
-- **Health checks**: disponibilidade da API e banco.  
-  **Serve para** observabilidade e diagnóstico.
-
-## 🗄️ Necessidades e alinhamentos de Banco de Dados
-
-### **Entidades principais**
-- **User**: dados do usuário e papel (`cliente`/`prestador`), com `Slug` único para prestadores.
-- **Service**: serviços publicados por prestadores.
-- **Schedule**: janelas de atendimento por prestador (dia da semana e horário).
-- **Booking**: reservas feitas por clientes, associadas a serviço e data/hora.
-
-### **Regras e integridade**
-- **Unicidade**: `Email` e `Slug` devem ser únicos.
-- **Relacionamentos**:
-  - `User` (prestador) → `Service` (1:N)
-  - `User` (prestador) → `Schedule` (1:N)
-  - `Booking` → `User` (cliente) (N:1)
-  - `Booking` → `Service` (N:1)
-- **Validações**:
-  - `Booking` não pode ocorrer no passado.
-  - `Booking` não pode conflitar com outra reserva ativa.
-  - `Schedule` deve respeitar `StartTime < EndTime`.
-
-### **Migrações e seed**
-- Recomenda-se manter migrações do EF Core para versionar o schema.
-- Opcional: seed de dados para prestadores/serviços de exemplo em ambiente dev.
-
-## 🧑‍💻 Alinhamento com Front-end (necessidades e fluxo)
-
-### **Autenticação**
-- Guardar JWT no client (ex.: storage seguro) e enviar em `Authorization: Bearer {token}`.
-- Diferenciar fluxo/menus por `UserType` (`cliente` x `prestador`).
-
-### **Cliente**
-- Tela de listagem de serviços (`GET /api/services`).
-- Criação de agendamento (`POST /api/bookings`) com data futura válida.
-- Lista de agendamentos próprios (`GET /api/bookings`).
-
-### **Prestador**
-- CRUD de serviços (`/api/services`).
-- CRUD de horários (`/api/schedules`).
-- Lista de reservas recebidas (`GET /api/bookings`).
-- Atualização de status (`PUT /api/bookings/{id}/status`).
-
-### **Perfil público**
-- Página pública baseada em slug (`GET /api/prestador/{slug}`).
-- Lista de serviços públicos do prestador (`GET /api/prestador/{slug}/services`).
-
-### **Monitoramento**
-- Páginas ou widgets de status consumindo `/api/health` e `/api/health/info` (ambiente interno).
-
-## 🎯 Endpoints da API
-
-### **Autenticação (`/api/auth`)**
+**Request:**
+```json
+{
+  "name": "Joao Silva",
+  "email": "joao@email.com",
+  "password": "123456",
+  "userTypes": ["cliente"]
+}
 ```
-POST /api/auth/register     # Registro de usuário
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Usuario registrado com sucesso",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": "guid-do-usuario",
+      "name": "Joao Silva",
+      "email": "joao@email.com",
+      "userType": "cliente"
+    }
+  }
+}
+```
+
+**Importante:** Guardar o `token` para usar em requisicoes futuras.
+
+### 2. Atualizar Perfil do Cliente
+
+**Endpoint:** `PUT /api/profile/cliente`
+
+**Headers:**
+```
+Authorization: Bearer {token_do_cliente}
+Content-Type: application/json
+```
+
+**Request:**
+```json
+{
+  "name": "Joao Silva Santos",
+  "telefoneCliente": "(11) 98765-4321",
+  "dataNascimento": "1990-01-15T00:00:00Z",
+  "enderecoCliente": "Rua Exemplo, 123 - Sao Paulo/SP",
+  "cpf": "123.456.789-00",
+  "preferenciasNotificacao": "email,sms"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Perfil de cliente atualizado com sucesso",
+  "data": {
+    "id": "guid-do-usuario",
+    "name": "Joao Silva Santos",
+    "email": "joao@email.com",
+    "userType": "cliente",
+    "dadosCliente": {
+      "telefoneCliente": "(11) 98765-4321",
+      "dataNascimento": "1990-01-15T00:00:00Z",
+      "enderecoCliente": "Rua Exemplo, 123 - Sao Paulo/SP",
+      "cpf": "123.456.789-00",
+      "preferenciasNotificacao": "email,sms",
+      "totalAgendamentosCliente": 0
+    }
+  }
+}
+```
+
+### 3. Criar Usuario Prestador
+
+**Endpoint:** `POST /api/auth/register`
+
+**Request:**
+```json
+{
+  "name": "Maria Santos",
+  "email": "maria@email.com",
+  "password": "123456",
+  "userTypes": ["prestador"]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Usuario registrado com sucesso",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": "guid-do-prestador",
+      "name": "Maria Santos",
+      "email": "maria@email.com",
+      "userType": "prestador"
+    }
+  }
+}
+```
+
+### 4. Atualizar Perfil do Prestador
+
+**Endpoint:** `PUT /api/profile/prestador`
+
+**Headers:**
+```
+Authorization: Bearer {token_do_prestador}
+Content-Type: application/json
+```
+
+**Request:**
+```json
+{
+  "name": "Maria Santos",
+  "displayName": "Salao da Maria",
+  "slug": "salao-da-maria",
+  "bio": "Salao especializado em cortes modernos, coloracao e tratamentos capilares. Atendemos ha mais de 10 anos em Sao Paulo.",
+  "telefonePrestador": "(11) 91234-5678",
+  "enderecoPrestador": "Av. Principal, 456 - Sao Paulo/SP",
+  "cnpj": "12.345.678/0001-90",
+  "site": "https://salaodamaria.com.br",
+  "primaryColor": "#FF5733",
+  "logoUrl": "https://exemplo.com/logo.png",
+  "coverImageUrl": "https://exemplo.com/capa.jpg",
+  "aceitaAgendamentoImediato": true,
+  "horasAntecedenciaMinima": 2,
+  "perfilAtivo": true,
+  "horarioInicioSemana": "08:00",
+  "horarioFimSemana": "18:00"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Perfil de prestador atualizado com sucesso",
+  "data": {
+    "id": "guid-do-prestador",
+    "name": "Maria Santos",
+    "email": "maria@email.com",
+    "userType": "prestador",
+    "dadosPrestador": {
+      "slug": "salao-da-maria",
+      "displayName": "Salao da Maria",
+      "bio": "Salao especializado em cortes modernos...",
+      "telefonePrestador": "(11) 91234-5678",
+      "enderecoPrestador": "Av. Principal, 456 - Sao Paulo/SP",
+      "site": "https://salaodamaria.com.br",
+      "primaryColor": "#FF5733",
+      "logoUrl": "https://exemplo.com/logo.png",
+      "coverImageUrl": "https://exemplo.com/capa.jpg",
+      "cnpj": "12.345.678/0001-90",
+      "aceitaAgendamentoImediato": true,
+      "horasAntecedenciaMinima": 2,
+      "perfilAtivo": true,
+      "horarioInicioSemana": "08:00",
+      "horarioFimSemana": "18:00",
+      "publicUrl": "/prestador/salao-da-maria",
+      "perfilCompleto": true,
+      "avaliacaoMedia": 0,
+      "totalServicos": 0,
+      "totalAgendamentosPrestador": 0
+    }
+  }
+}
+```
+
+### 5. Criar Servico (Prestador)
+
+**Endpoint:** `POST /api/services`
+
+**Headers:**
+```
+Authorization: Bearer {token_do_prestador}
+Content-Type: application/json
+```
+
+**Request:**
+```json
+{
+  "title": "Corte de Cabelo Masculino",
+  "description": "Corte moderno com finalizacao",
+  "price": 45.00,
+  "durationMinutes": 60
+}
+```
+
+### 6. Criar Horario Disponivel (Prestador)
+
+**Endpoint:** `POST /api/schedules`
+
+**Headers:**
+```
+Authorization: Bearer {token_do_prestador}
+Content-Type: application/json
+```
+
+**Request:**
+```json
+{
+  "dayOfWeek": 1,
+  "startTime": "08:00:00",
+  "endTime": "18:00:00"
+}
+```
+
+### 7. Fazer Agendamento (Cliente)
+
+**Endpoint:** `POST /api/bookings`
+
+**Headers:**
+```
+Authorization: Bearer {token_do_cliente}
+Content-Type: application/json
+```
+
+**Request:**
+```json
+{
+  "serviceId": "guid-do-servico",
+  "date": "2024-12-20T10:00:00Z",
+  "notes": "Prefiro corte mais curto nas laterais"
+}
+```
+
+### 8. Ver Perfil Publico do Prestador (Sem autenticacao)
+
+**Endpoint:** `GET /api/prestador/{slug}`
+
+**Exemplo:** `GET /api/prestador/salao-da-maria`
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "guid-do-prestador",
+    "name": "Maria Santos",
+    "displayName": "Salao da Maria",
+    "slug": "salao-da-maria",
+    "bio": "Salao especializado...",
+    "logoUrl": "https://exemplo.com/logo.png",
+    "coverImageUrl": "https://exemplo.com/capa.jpg",
+    "primaryColor": "#FF5733"
+  }
+}
+```
+
+## Endpoints da API
+
+### Autenticacao (`/api/auth`)
+```
+POST /api/auth/register     # Registro de usuario (cliente ou prestador)
 POST /api/auth/login        # Login
-GET  /api/auth/profile      # Perfil atual
+GET  /api/auth/profile      # Perfil do usuario autenticado
 ```
 
-### **Serviços (`/api/services`)**
+### Perfil (`/api/profile`)
 ```
-GET    /api/services        # Listar serviços
-POST   /api/services        # Criar serviço
-GET    /api/services/{id}   # Obter serviço
-PUT    /api/services/{id}   # Atualizar serviço
-DELETE /api/services/{id}   # Deletar serviço
+GET  /api/profile           # Ver perfil completo (cliente ou prestador)
+PUT  /api/profile/cliente   # Atualizar perfil de cliente
+PUT  /api/profile/prestador # Atualizar perfil de prestador
 ```
 
-### **Agendamentos (`/api/schedules` e `/api/bookings`)**
+### Servicos (`/api/services`)
 ```
-GET  /api/schedules         # Horários disponíveis
-POST /api/schedules         # Criar horário
-GET  /api/bookings          # Listar reservas
-POST /api/bookings          # Fazer reserva
-```
-
-### **Perfil Público (`/api/prestador/{slug}`)**
-```
-GET /api/prestador/{slug}           # Perfil público
-GET /api/prestador/{slug}/services  # Serviços do prestador
+GET    /api/services        # Listar servicos
+POST   /api/services        # Criar servico (prestador)
+GET    /api/services/{id}   # Obter servico
+PUT    /api/services/{id}   # Atualizar servico (prestador)
+DELETE /api/services/{id}   # Deletar servico (prestador)
 ```
 
-### **Monitoramento**
+### Horarios (`/api/schedules`)
 ```
-GET /health                 # Status da aplicação
+GET  /api/schedules         # Listar horarios disponiveis
+POST /api/schedules         # Criar horario (prestador)
+```
+
+### Agendamentos (`/api/bookings`)
+```
+GET  /api/bookings          # Listar agendamentos
+POST /api/bookings          # Criar agendamento (cliente)
+```
+
+### Perfil Publico (`/api/prestador`)
+```
+GET /api/prestador/{slug}           # Ver perfil publico do prestador
+GET /api/prestador/{slug}/services  # Ver servicos do prestador
+```
+
+### Monitoramento
+```
+GET /health                 # Health check simples
 GET /api/health            # Health check detalhado
-GET /api/health/ping       # Ping rápido
-GET /api/health/info       # Informações detalhadas do sistema
+GET /api/health/ping       # Ping rapido
+GET /api/health/info       # Informacoes do sistema
 ```
 
-## 🚀 Como Executar
+## Como Executar
 
-### **Pré-requisitos**
+### Pre-requisitos
 - .NET 8 SDK
 - PostgreSQL
-- Git
 
-### **1. Clonagem e Setup**
-```bash
-git clone https://github.com/beto-desenv/Plataforma_Agendamentos.git
-cd Plataforma_Agendamentos
-```
-
-### **2. Configuração do Banco**
+### Setup do Banco
 ```sql
--- Criar usuário e banco no PostgreSQL
 CREATE USER plataforma_user WITH PASSWORD '180312';
 CREATE DATABASE plataforma_agendamentos_dev;
 GRANT ALL PRIVILEGES ON DATABASE plataforma_agendamentos_dev TO plataforma_user;
 ```
 
-### **3. Execução (Método Mais Simples)**
-
-#### **Windows:**
-```cmd
-# Execute o script principal
-start-swagger.bat
-```
-
-#### **PowerShell:**
-```powershell
-# Ou use o PowerShell
-.\test-swagger-final.ps1
-```
-
-#### **Manual:**
+### Executar
 ```bash
 cd Plataforma_Agendamentos
 dotnet restore
 dotnet build
-dotnet run --urls="https://localhost:5001;http://localhost:5000"
+dotnet run
 ```
 
-### **4. Acesso**
-Após executar, acesse:
-- **🏠 Home**: `https://localhost:5001/`
-- **📖 Swagger**: `https://localhost:5001/swagger`
-- **🏥 Health**: `https://localhost:5001/api/health`
+### Acessar
+- **Home**: `https://localhost:5001/`
+- **Swagger**: `https://localhost:5001/swagger`
+- **Health**: `https://localhost:5001/api/health`
 
-## 🔧 Configuração para Frontend
+## Implementacao no Frontend
 
-Use as URLs corretas no seu frontend:
+### 1. Configuracao do Axios
 
 ```javascript
-// axiosConfig.js
+// src/services/api.js
+import axios from 'axios';
+
 const api = axios.create({
-  baseURL: 'https://localhost:5001/api',  // API Backend
+  baseURL: 'https://localhost:5001/api',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   }
 });
+
+// Interceptor para adicionar token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+export default api;
 ```
 
-### **Endpoints Principais:**
-- **Health Check**: `GET /api/health`
-- **Registro**: `POST /api/auth/register`
-- **Login**: `POST /api/auth/login`
-- **Perfil**: `GET /api/auth/profile`
+### 2. Servico de Autenticacao
 
-Veja `api-config.json` para configuração completa.
+```javascript
+// src/services/authService.js
+import api from './api';
 
-## 📁 Estrutura do Projeto
+export const authService = {
+  // Registro de cliente
+  async registerCliente(data) {
+    const response = await api.post('/auth/register', {
+      name: data.name,
+      email: data.email,
+      password: data.password,
+      userTypes: ['cliente']
+    });
+    
+    if (response.data.success) {
+      localStorage.setItem('token', response.data.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    }
+    
+    return response.data;
+  },
 
-```
-Plataforma_Agendamentos/
-├── Controllers/           # Controllers da API
-│   ├── AuthController.cs     # Autenticação
-│   ├── ServicesController.cs # Serviços
-│   ├── SchedulesController.cs # Horários
-│   ├── BookingsController.cs # Reservas
-│   ├── ProfileController.cs  # Perfis
-│   ├── PrestadorController.cs # Perfil público
-│   └── HealthController.cs   # Monitoramento
-├── Models/               # Modelos de dados
-├── DTOs/                # Data Transfer Objects
-├── Services/            # Serviços de negócio
-├── Middleware/          # Middleware customizado
-├── Validators/          # Validadores FluentValidation
-├── Data/                # Context do Entity Framework
-├── Migrations/          # Migrações do banco
-├── Properties/          # Configurações do projeto
-└── Program.cs           # Entry point da aplicação
-```
+  // Registro de prestador
+  async registerPrestador(data) {
+    const response = await api.post('/auth/register', {
+      name: data.name,
+      email: data.email,
+      password: data.password,
+      userTypes: ['prestador']
+    });
+    
+    if (response.data.success) {
+      localStorage.setItem('token', response.data.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    }
+    
+    return response.data;
+  },
 
-## 🧪 Testando a API
+  // Login
+  async login(email, password) {
+    const response = await api.post('/auth/login', { email, password });
+    
+    if (response.data.success) {
+      localStorage.setItem('token', response.data.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    }
+    
+    return response.data;
+  },
 
-### **1. Via Swagger UI**
-Acesse `https://localhost:5001/swagger` para interface interativa.
+  // Logout
+  logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  },
 
-### **2. Via cURL**
-```bash
-# Health check
-curl -k https://localhost:5001/api/health
+  // Verificar se esta autenticado
+  isAuthenticated() {
+    return !!localStorage.getItem('token');
+  },
 
-# Registro
-curl -k -X POST https://localhost:5001/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "João Silva",
-    "email": "joao@email.com",
-    "password": "123456",
-    "userTypes": ["cliente"]
-  }'
-```
+  // Obter usuario atual
+  getCurrentUser() {
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
+  },
 
-### **3. Via Postman**
-Importe o arquivo `postman_collection.json` (se disponível).
+  // Verificar tipo de usuario
+  isCliente() {
+    const user = this.getCurrentUser();
+    return user?.userType === 'cliente';
+  },
 
-## 🔒 Segurança Implementada
-
-- ✅ Hash de senhas com BCrypt
-- ✅ Autenticação JWT
-- ✅ Validação de entrada com FluentValidation
-- ✅ Headers de segurança HTTP
-- ✅ CORS configurado
-- ✅ Rate limiting (via middleware)
-- ✅ Logs de auditoria
-
-## 📝 Logs e Monitoramento
-
-### **Logs Estruturados**
-```bash
-[23:16:26 INF] Health check iniciado - RequestId: abc123
-[23:16:26 INF] Operação: LOGIN_SUCCESS | Usuário: user@email.com
-```
-
-### **Health Checks**
-- Aplicação rodando
-- Conexão com PostgreSQL
-- Uso de memória
-- Tempo de resposta
-
-## 🎯 Próximos Passos
-
-### **Backend (Melhorias)**
-- [ ] Implementação de cache (Redis)
-- [ ] Rate limiting mais avançado
-- [ ] Backup automático do banco
-- [ ] Métricas com Prometheus
-- [ ] Deploy com Docker
-
-### **Frontend (A implementar)**
-- [ ] Interface em Vue.js/React
-- [ ] Dashboard para prestadores
-- [ ] Calendário de agendamentos
-- [ ] Notificações em tempo real
-- [ ] PWA para mobile
-
-## 🐛 Solução de Problemas
-
-### **Aplicação não inicia?**
-```cmd
-# Execute o diagnóstico
-.\COMO-EXECUTAR.md
+  isPrestador() {
+    const user = this.getCurrentUser();
+    return user?.userType === 'prestador';
+  }
+};
 ```
 
-### **PostgreSQL não conecta?**
-1. Verifique se o PostgreSQL está rodando
-2. Confirme usuário e senha
-3. Teste conexão: `psql -h localhost -U plataforma_user`
+### 3. Servico de Perfil
 
-### **Swagger não carrega?**
-1. Verifique se aplicação iniciou completamente
-2. Tente HTTP: `http://localhost:5000/swagger`
-3. Aceite certificado SSL no navegador
+```javascript
+// src/services/profileService.js
+import api from './api';
 
-## 📞 Contato
+export const profileService = {
+  // Obter perfil
+  async getProfile() {
+    const response = await api.get('/profile');
+    return response.data;
+  },
 
-**Desenvolvedor:** Beto Vieira Carlos
-**Email:** beto.vieiracarlos@gmail.com
+  // Atualizar perfil de cliente
+  async updateClienteProfile(data) {
+    const response = await api.put('/profile/cliente', data);
+    return response.data;
+  },
+
+  // Atualizar perfil de prestador
+  async updatePrestadorProfile(data) {
+    const response = await api.put('/profile/prestador', data);
+    return response.data;
+  }
+};
+```
+
+### 4. Componente de Registro (Vue.js)
+
+```vue
+<!-- src/views/Register.vue -->
+<template>
+  <div class="register-page">
+    <h1>Criar Conta</h1>
+    
+    <!-- Escolher tipo de usuario -->
+    <div class="user-type-selector">
+      <button 
+        @click="userType = 'cliente'" 
+        :class="{ active: userType === 'cliente' }"
+      >
+        Sou Cliente
+      </button>
+      <button 
+        @click="userType = 'prestador'" 
+        :class="{ active: userType === 'prestador' }"
+      >
+        Sou Prestador
+      </button>
+    </div>
+
+    <!-- Formulario -->
+    <form @submit.prevent="handleRegister">
+      <input 
+        v-model="form.name" 
+        type="text" 
+        placeholder="Nome completo" 
+        required 
+      />
+      <input 
+        v-model="form.email" 
+        type="email" 
+        placeholder="E-mail" 
+        required 
+      />
+      <input 
+        v-model="form.password" 
+        type="password" 
+        placeholder="Senha" 
+        required 
+      />
+      
+      <button type="submit">Criar Conta</button>
+    </form>
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { authService } from '@/services/authService';
+
+const router = useRouter();
+const userType = ref('cliente');
+const form = ref({
+  name: '',
+  email: '',
+  password: ''
+});
+
+const handleRegister = async () => {
+  try {
+    if (userType.value === 'cliente') {
+      await authService.registerCliente(form.value);
+      router.push('/perfil/cliente');
+    } else {
+      await authService.registerPrestador(form.value);
+      router.push('/perfil/prestador');
+    }
+  } catch (error) {
+    console.error('Erro ao registrar:', error);
+    alert('Erro ao criar conta');
+  }
+};
+</script>
+```
+
+### 5. Componente de Perfil do Cliente
+
+```vue
+<!-- src/views/ClienteProfile.vue -->
+<template>
+  <div class="cliente-profile">
+    <h1>Meu Perfil</h1>
+    
+    <form @submit.prevent="handleUpdate">
+      <input v-model="form.name" type="text" placeholder="Nome" />
+      <input v-model="form.telefoneCliente" type="tel" placeholder="Telefone" />
+      <input v-model="form.dataNascimento" type="date" placeholder="Data de Nascimento" />
+      <input v-model="form.enderecoCliente" type="text" placeholder="Endereco" />
+      <input v-model="form.cpf" type="text" placeholder="CPF" />
+      
+      <button type="submit">Atualizar Perfil</button>
+    </form>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import { profileService } from '@/services/profileService';
+
+const form = ref({
+  name: '',
+  telefoneCliente: '',
+  dataNascimento: '',
+  enderecoCliente: '',
+  cpf: ''
+});
+
+onMounted(async () => {
+  const profile = await profileService.getProfile();
+  if (profile.data.dadosCliente) {
+    form.value = { ...profile.data, ...profile.data.dadosCliente };
+  }
+});
+
+const handleUpdate = async () => {
+  try {
+    await profileService.updateClienteProfile(form.value);
+    alert('Perfil atualizado com sucesso!');
+  } catch (error) {
+    console.error('Erro ao atualizar:', error);
+    alert('Erro ao atualizar perfil');
+  }
+};
+</script>
+```
+
+### 6. Componente de Perfil do Prestador
+
+```vue
+<!-- src/views/PrestadorProfile.vue -->
+<template>
+  <div class="prestador-profile">
+    <h1>Meu Perfil Profissional</h1>
+    
+    <form @submit.prevent="handleUpdate">
+      <input v-model="form.name" type="text" placeholder="Nome" />
+      <input v-model="form.displayName" type="text" placeholder="Nome do Negocio" />
+      <input v-model="form.slug" type="text" placeholder="URL Personalizada" />
+      <textarea v-model="form.bio" placeholder="Biografia"></textarea>
+      <input v-model="form.telefonePrestador" type="tel" placeholder="Telefone" />
+      <input v-model="form.enderecoPrestador" type="text" placeholder="Endereco" />
+      <input v-model="form.cnpj" type="text" placeholder="CNPJ" />
+      <input v-model="form.site" type="url" placeholder="Site" />
+      <input v-model="form.primaryColor" type="color" placeholder="Cor Principal" />
+      
+      <button type="submit">Atualizar Perfil</button>
+    </form>
+    
+    <div class="preview">
+      <h2>Seu Perfil Publico:</h2>
+      <a :href="`/prestador/${form.slug}`" target="_blank">
+        Ver Perfil Publico
+      </a>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import { profileService } from '@/services/profileService';
+
+const form = ref({
+  name: '',
+  displayName: '',
+  slug: '',
+  bio: '',
+  telefonePrestador: '',
+  enderecoPrestador: '',
+  cnpj: '',
+  site: '',
+  primaryColor: '#007bff'
+});
+
+onMounted(async () => {
+  const profile = await profileService.getProfile();
+  if (profile.data.dadosPrestador) {
+    form.value = { ...profile.data, ...profile.data.dadosPrestador };
+  }
+});
+
+const handleUpdate = async () => {
+  try {
+    await profileService.updatePrestadorProfile(form.value);
+    alert('Perfil atualizado com sucesso!');
+  } catch (error) {
+    console.error('Erro ao atualizar:', error);
+    alert('Erro ao atualizar perfil');
+  }
+};
+</script>
+```
+
+## Estrutura Recomendada do Frontend
+
+```
+frontend/
+├── src/
+│   ├── services/
+│   │   ├── api.js                  # Configuracao do Axios
+│   │   ├── authService.js          # Autenticacao
+│   │   ├── profileService.js       # Perfis
+│   │   ├── serviceService.js       # Servicos
+│   │   └── bookingService.js       # Agendamentos
+│   ├── views/
+│   │   ├── Register.vue            # Registro
+│   │   ├── Login.vue               # Login
+│   │   ├── ClienteProfile.vue      # Perfil do Cliente
+│   │   ├── PrestadorProfile.vue    # Perfil do Prestador
+│   │   ├── Services.vue            # Listagem de Servicos
+│   │   ├── Bookings.vue            # Agendamentos
+│   │   └── PrestadorPublic.vue     # Perfil Publico
+│   ├── components/
+│   │   ├── Navbar.vue              # Barra de navegacao
+│   │   ├── ServiceCard.vue         # Card de servico
+│   │   └── Calendar.vue            # Calendario de agendamentos
+│   ├── router/
+│   │   └── index.js                # Rotas
+│   ├── store/
+│   │   └── auth.js                 # Estado de autenticacao (Pinia/Vuex)
+│   └── App.vue
+└── package.json
+```
+
+## Proximos Passos no Frontend
+
+1. **Implementar autenticacao completa**
+   - Telas de registro/login
+   - Guardas de rota (verificar autenticacao)
+   - Diferenciar menus por tipo de usuario
+
+2. **Dashboard do Cliente**
+   - Busca de prestadores
+   - Listagem de servicos
+   - Calendario para agendamento
+   - Historico de agendamentos
+
+3. **Dashboard do Prestador**
+   - Gestao de servicos (CRUD)
+   - Gestao de horarios (CRUD)
+   - Visualizacao de agendamentos recebidos
+   - Atualizacao de status dos agendamentos
+
+4. **Perfil Publico do Prestador**
+   - Pagina com slug personalizada
+   - Listagem de servicos
+   - Botao de agendamento direto
+
+5. **Funcionalidades Avancadas**
+   - Notificacoes em tempo real
+   - Sistema de avaliacoes
+   - Upload de imagens (logo/capa)
+   - Pagamento integrado
+
+## Contato
+
+**Desenvolvedor:** Beto Vieira Carlos  
+**Email:** beto.vieiracarlos@gmail.com  
 **GitHub:** [beto-desenv](https://github.com/beto-desenv)
-
-## 📄 Licença
-
-Este projeto está sob licença MIT. Veja LICENSE para mais detalhes.
 
 ---
 
-**🎉 Projeto funcionando completamente! Ready para produção!** 🚀
+**Backend completo e pronto para integracao com frontend!**
