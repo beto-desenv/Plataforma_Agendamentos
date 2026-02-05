@@ -104,6 +104,7 @@ GET /api/prestador/{slug}/services  # Serviços do prestador
 GET /health                 # Status da aplicação
 GET /api/health            # Health check detalhado
 GET /api/health/ping       # Ping rápido
+GET /api/health/info       # Informações detalhadas do sistema
 ```
 
 ## 🚀 Como Executar

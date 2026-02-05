@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "plataforma-agendamentos-api",
 		"name": "Plataforma de Agendamentos API",
-		"description": "Collection para testar todos os endpoints da API de agendamentos com suporte a m˙ltiplos tipos de usu·rio",
+		"description": "Collection para testar todos os endpoints da API de agendamentos com suporte a m√∫ltiplos tipos de usu√°rio",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"auth": {
@@ -29,7 +29,7 @@
 	],
 	"item": [
 		{
-			"name": "AutenticaÁ„o",
+			"name": "Autentica√ß√£o",
 			"item": [
 				{
 					"name": "Cadastrar Cliente",
@@ -64,7 +64,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Jo„o Silva\",\n  \"email\": \"joao@prestador.com\",\n  \"password\": \"minhasenha123\",\n  \"userTypes\": [\"prestador\"]\n}"
+							"raw": "{\n  \"name\": \"Jo√£o Silva\",\n  \"email\": \"joao@prestador.com\",\n  \"password\": \"minhasenha123\",\n  \"userTypes\": [\"prestador\"]\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/register",
@@ -95,7 +95,7 @@
 					}
 				},
 				{
-					"name": "Adicionar Role Cliente (se j· È prestador)",
+					"name": "Adicionar Role Cliente (se j√° √© prestador)",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -106,7 +106,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Jo„o Silva\",\n  \"email\": \"joao@prestador.com\",\n  \"password\": \"minhasenha123\",\n  \"userTypes\": [\"cliente\"]\n}"
+							"raw": "{\n  \"name\": \"Jo√£o Silva\",\n  \"email\": \"joao@prestador.com\",\n  \"password\": \"minhasenha123\",\n  \"userTypes\": [\"cliente\"]\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/register",
@@ -172,7 +172,7 @@
 					}
 				},
 				{
-					"name": "Buscar Usu·rio Atual",
+					"name": "Buscar Usu√°rio Atual",
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -212,7 +212,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"slug\": \"joaocarwash\",\n  \"displayName\": \"Jo„o Car Wash\",\n  \"logoUrl\": \"https://exemplo.com/logo.jpg\",\n  \"coverImageUrl\": \"https://exemplo.com/capa.jpg\",\n  \"primaryColor\": \"#1e90ff\",\n  \"bio\": \"Lavagem ecolÛgica, r·pida e com atenÁ„o aos detalhes.\"\n}"
+							"raw": "{\n  \"slug\": \"joaocarwash\",\n  \"displayName\": \"Jo√£o Car Wash\",\n  \"logoUrl\": \"https://exemplo.com/logo.jpg\",\n  \"coverImageUrl\": \"https://exemplo.com/capa.jpg\",\n  \"primaryColor\": \"#1e90ff\",\n  \"bio\": \"Lavagem ecol√≥gica, r√°pida e com aten√ß√£o aos detalhes.\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/profile",
@@ -224,10 +224,10 @@
 			]
 		},
 		{
-			"name": "ServiÁos",
+			"name": "Servi√ßos",
 			"item": [
 				{
-					"name": "Listar ServiÁos",
+					"name": "Listar Servi√ßos",
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -239,7 +239,7 @@
 					}
 				},
 				{
-					"name": "Criar ServiÁo",
+					"name": "Criar Servi√ßo",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -262,7 +262,7 @@
 			]
 		},
 		{
-			"name": "P˙blico",
+			"name": "P√∫blico",
 			"item": [
 				{
 					"name": "Buscar Prestador por Slug",

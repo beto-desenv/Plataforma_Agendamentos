@@ -28,7 +28,7 @@ public class BookingsController : ControllerBase
         if (userId == null)
             return Unauthorized();
 
-        var userType = User.GetUserType();
+        var userType = GetCurrentUserType();
 
         IQueryable<Booking> query = _context.Bookings
             .Include(b => b.Client)
@@ -167,7 +167,9 @@ public class BookingsController : ControllerBase
         if (userId == null)
             return Unauthorized();
 
-        var userType = GetCurrentUserType();
+        var userType = User.GetUserType();
+        if (userType == null)
+            return Unauthorized();
 
         var booking = await _context.Bookings
             .Include(b => b.Client)
@@ -240,7 +242,9 @@ public class BookingsController : ControllerBase
 
         return Ok(new { booking.Id, booking.Status });
     }
-}
-        return User.FindFirst("UserType")?.Value;
+
+    private string? GetCurrentUserType()
+    {
+        return User.GetUserType();
     }
 }

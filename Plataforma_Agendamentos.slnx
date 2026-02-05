@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="Plataforma_Agendamentos/Plataforma_Agendamentos.csproj" />
+  <Project Path="Plataforma_Agendamentos.Tests/Plataforma_Agendamentos.Tests.csproj" />
 </Solution>
