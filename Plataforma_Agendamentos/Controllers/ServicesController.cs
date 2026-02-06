@@ -1,11 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Plataforma_Agendamentos.Constants;
-using Plataforma_Agendamentos.Data;
 using Plataforma_Agendamentos.DTOs;
 using Plataforma_Agendamentos.Extensions;
-using Plataforma_Agendamentos.Models;
+using Plataforma_Agendamentos.Services;
 
 namespace Plataforma_Agendamentos.Controllers;
 
@@ -14,11 +12,13 @@ namespace Plataforma_Agendamentos.Controllers;
 [Authorize]
 public class ServicesController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IServiceManagementService _serviceManagementService;
+    private readonly ILogger<ServicesController> _logger;
 
-    public ServicesController(AppDbContext context)
+    public ServicesController(IServiceManagementService serviceManagementService, ILogger<ServicesController> logger)
     {
-        _context = context;
+        _serviceManagementService = serviceManagementService;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -29,20 +29,9 @@ public class ServicesController : ControllerBase
             return Unauthorized();
 
         if (User.GetUserType() != UserTypes.Prestador)
-            return Forbid("Apenas prestadores podem gerenciar serviços.");
+            return Forbid("Apenas prestadores podem gerenciar servicos");
 
-        var services = await _context.Services
-            .Where(s => s.UserId == userId)
-            .Select(s => new
-            {
-                s.Id,
-                s.Nome,
-                s.Description,
-                s.Preco,
-                s.DurationMinutes
-            })
-            .ToListAsync();
-
+        var services = await _serviceManagementService.GetServicesByProviderAsync(userId.Value);
         return Ok(services);
     }
 
@@ -57,28 +46,10 @@ public class ServicesController : ControllerBase
             return Unauthorized();
 
         if (User.GetUserType() != UserTypes.Prestador)
-            return Forbid("Apenas prestadores podem criar serviços.");
+            return Forbid("Apenas prestadores podem criar servicos");
 
-        var service = new Service
-        {
-            UserId = userId.Value,
-            Nome = request.Title,
-            Description = request.Description,
-            Preco = request.Price,
-            DurationMinutes = request.DurationMinutes
-        };
-
-        _context.Services.Add(service);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetService), new { id = service.Id }, new
-        {
-            service.Id,
-            service.Nome,
-            service.Description,
-            service.Preco,
-            service.DurationMinutes
-        });
+        var service = await _serviceManagementService.CreateServiceAsync(userId.Value, request);
+        return CreatedAtAction(nameof(GetService), new { id = service.Id }, service);
     }
 
     [HttpGet("{id}")]
@@ -89,19 +60,9 @@ public class ServicesController : ControllerBase
             return Unauthorized();
 
         if (User.GetUserType() != UserTypes.Prestador)
-            return Forbid("Apenas prestadores podem visualizar serviços próprios.");
+            return Forbid("Apenas prestadores podem visualizar servicos proprios");
 
-        var service = await _context.Services
-            .Where(s => s.Id == id && s.UserId == userId)
-            .Select(s => new
-            {
-                s.Id,
-                s.Nome,
-                s.Description,
-                s.Preco,
-                s.DurationMinutes
-            })
-            .FirstOrDefaultAsync();
+        var service = await _serviceManagementService.GetServiceByIdAsync(id, userId.Value);
 
         if (service == null)
             return NotFound();
@@ -120,29 +81,18 @@ public class ServicesController : ControllerBase
             return Unauthorized();
 
         if (User.GetUserType() != UserTypes.Prestador)
-            return Forbid("Apenas prestadores podem atualizar serviços.");
+            return Forbid("Apenas prestadores podem atualizar servicos");
 
-        var service = await _context.Services
-            .FirstOrDefaultAsync(s => s.Id == id && s.UserId == userId);
-
-        if (service == null)
-            return NotFound();
-
-        service.Nome = request.Title;
-        service.Description = request.Description;
-        service.Preco = request.Price;
-        service.DurationMinutes = request.DurationMinutes;
-
-        await _context.SaveChangesAsync();
-
-        return Ok(new
+        try
         {
-            service.Id,
-            service.Nome,
-            service.Description,
-            service.Preco,
-            service.DurationMinutes
-        });
+            var service = await _serviceManagementService.UpdateServiceAsync(id, userId.Value, request);
+            return Ok(service);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning("Erro ao atualizar servico: {Message}", ex.Message);
+            return NotFound(ex.Message);
+        }
     }
 
     [HttpDelete("{id}")]
@@ -153,18 +103,13 @@ public class ServicesController : ControllerBase
             return Unauthorized();
 
         if (User.GetUserType() != UserTypes.Prestador)
-            return Forbid("Apenas prestadores podem excluir serviços.");
+            return Forbid("Apenas prestadores podem excluir servicos");
 
-        var service = await _context.Services
-            .FirstOrDefaultAsync(s => s.Id == id && s.UserId == userId);
+        var deleted = await _serviceManagementService.DeleteServiceAsync(id, userId.Value);
 
-        if (service == null)
+        if (!deleted)
             return NotFound();
-
-        _context.Services.Remove(service);
-        await _context.SaveChangesAsync();
 
         return NoContent();
     }
-
 }

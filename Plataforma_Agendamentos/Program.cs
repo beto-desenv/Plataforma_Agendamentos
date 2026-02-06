@@ -119,6 +119,8 @@ namespace Plataforma_Agendamentos
                 builder.Services.AddScoped<IAuthService, AuthService>();
                 builder.Services.AddScoped<IProfileService, ProfileService>();
                 builder.Services.AddScoped<IBookingService, BookingService>();
+                builder.Services.AddScoped<IServiceManagementService, ServiceManagementService>();
+                builder.Services.AddScoped<IPrestadorService, PrestadorService>();
                 builder.Services.AddMemoryCache();
                 builder.Services.AddHttpClient<ICepService, CepService>();
 

@@ -1,4 +1,4 @@
-using Plataforma_Agendamentos.Controllers;
+using Plataforma_Agendamentos.DTOs;
 
 namespace Plataforma_Agendamentos.Services;
 
