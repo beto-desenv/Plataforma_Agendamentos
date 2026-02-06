@@ -87,21 +87,4 @@ public class AuthController : ControllerBase
             }
         });
     }
-
-    /// <summary>
-    /// Endpoint de teste para verificar se a API esta respondendo
-    /// </summary>
-    [HttpGet("ping")]
-    public IActionResult Ping()
-    {
-        _logger.LogInformation("Ping recebido de {Origin}", Request.Headers["Origin"].ToString());
-        
-        return Ok(new
-        {
-            success = true,
-            message = "API esta funcionando!",
-            timestamp = DateTime.UtcNow,
-            version = "1.0.0"
-        });
-    }
 }

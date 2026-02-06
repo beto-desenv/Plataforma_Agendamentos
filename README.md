@@ -95,7 +95,13 @@ dotnet run
 ```
 POST /api/auth/register  - Cadastro
 POST /api/auth/login     - Login
-GET  /api/auth/ping      - Teste de conexao
+```
+
+### Health Checks
+```
+GET  /api/health         - Status detalhado da API
+GET  /api/health/ping    - Verificacao rapida
+GET  /api/health/info    - Informacoes do sistema
 ```
 
 ### Perfil
