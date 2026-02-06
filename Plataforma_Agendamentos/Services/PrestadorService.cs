@@ -4,6 +4,7 @@ using Plataforma_Agendamentos.Data;
 using Plataforma_Agendamentos.DTOs.Prestador;
 using Plataforma_Agendamentos.DTOs.Schedule;
 using Plataforma_Agendamentos.DTOs.Service;
+using Plataforma_Agendamentos.Services.Interfaces;
 
 namespace Plataforma_Agendamentos.Services;
 

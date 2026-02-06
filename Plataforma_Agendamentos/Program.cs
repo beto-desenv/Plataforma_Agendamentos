@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Plataforma_Agendamentos.Data;
 using Plataforma_Agendamentos.Services;
+using Plataforma_Agendamentos.Services.Interfaces;
 using System.Text;
 
 namespace Plataforma_Agendamentos

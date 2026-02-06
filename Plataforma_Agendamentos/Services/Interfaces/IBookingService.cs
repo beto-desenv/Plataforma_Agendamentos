@@ -1,6 +1,6 @@
 using Plataforma_Agendamentos.DTOs.Booking;
 
-namespace Plataforma_Agendamentos.Services;
+namespace Plataforma_Agendamentos.Services.Interfaces;
 
 /// <summary>
 /// Interface para servico de agendamentos

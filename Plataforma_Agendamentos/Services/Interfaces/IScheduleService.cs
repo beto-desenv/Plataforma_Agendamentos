@@ -1,6 +1,6 @@
 using Plataforma_Agendamentos.DTOs.Schedule;
 
-namespace Plataforma_Agendamentos.Services;
+namespace Plataforma_Agendamentos.Services.Interfaces;
 
 /// <summary>
 /// Interface para gerenciamento de horarios de atendimento

@@ -1,6 +1,6 @@
 using Plataforma_Agendamentos.DTOs.Profile;
 
-namespace Plataforma_Agendamentos.Services;
+namespace Plataforma_Agendamentos.Services.Interfaces;
 
 /// <summary>
 /// Interface para servico de gerenciamento de perfis

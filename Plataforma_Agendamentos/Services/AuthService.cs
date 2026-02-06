@@ -3,6 +3,7 @@ using Plataforma_Agendamentos.Constants;
 using Plataforma_Agendamentos.Data;
 using Plataforma_Agendamentos.DTOs.Auth;
 using Plataforma_Agendamentos.Models;
+using Plataforma_Agendamentos.Services.Interfaces;
 
 namespace Plataforma_Agendamentos.Services;
 

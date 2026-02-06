@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Plataforma_Agendamentos.Constants;
 using Plataforma_Agendamentos.DTOs.Schedule;
 using Plataforma_Agendamentos.Extensions;
-using Plataforma_Agendamentos.Services;
+using Plataforma_Agendamentos.Services.Interfaces;
 
 namespace Plataforma_Agendamentos.Controllers;
 

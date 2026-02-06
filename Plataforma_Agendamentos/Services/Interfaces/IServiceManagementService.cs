@@ -1,6 +1,6 @@
 using Plataforma_Agendamentos.DTOs.Service;
 
-namespace Plataforma_Agendamentos.Services;
+namespace Plataforma_Agendamentos.Services.Interfaces;
 
 /// <summary>
 /// Interface para gerenciamento de servicos oferecidos por prestadores

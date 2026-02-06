@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Plataforma_Agendamentos.DTOs.Auth;
-using Plataforma_Agendamentos.Services;
+using Plataforma_Agendamentos.Services.Interfaces;
 
 namespace Plataforma_Agendamentos.Controllers;
 

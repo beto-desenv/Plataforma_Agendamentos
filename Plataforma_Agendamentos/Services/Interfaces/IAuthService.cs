@@ -1,6 +1,6 @@
 using Plataforma_Agendamentos.DTOs.Auth;
 
-namespace Plataforma_Agendamentos.Services;
+namespace Plataforma_Agendamentos.Services.Interfaces;
 
 /// <summary>
 /// Interface para servico de autenticacao e registro de usuarios

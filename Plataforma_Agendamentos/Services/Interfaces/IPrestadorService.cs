@@ -1,7 +1,7 @@
 using Plataforma_Agendamentos.DTOs.Prestador;
 using Plataforma_Agendamentos.DTOs.Schedule;
 
-namespace Plataforma_Agendamentos.Services;
+namespace Plataforma_Agendamentos.Services.Interfaces;
 
 /// <summary>
 /// Interface para servicos publicos de prestador
