@@ -44,11 +44,11 @@ public class BookingsControllerTests
         var service = new Service
         {
             Id = Guid.NewGuid(),
-            ProviderId = provider.Id,
-            Title = "Consulta",
-            Price = 120m,
+            UserId = provider.Id,
+            Nome = "Consulta",
+            Preco = 120m,
             DurationMinutes = 60,
-            Provider = provider
+            User = provider
         };
 
         var bookingDate = DateTime.Now.AddDays(1).Date.AddHours(10);

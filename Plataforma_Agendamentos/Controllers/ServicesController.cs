@@ -32,13 +32,13 @@ public class ServicesController : ControllerBase
             return Forbid("Apenas prestadores podem gerenciar serviços.");
 
         var services = await _context.Services
-            .Where(s => s.ProviderId == userId)
+            .Where(s => s.UserId == userId)
             .Select(s => new
             {
                 s.Id,
-                s.Title,
+                s.Nome,
                 s.Description,
-                s.Price,
+                s.Preco,
                 s.DurationMinutes
             })
             .ToListAsync();
@@ -61,10 +61,10 @@ public class ServicesController : ControllerBase
 
         var service = new Service
         {
-            ProviderId = userId.Value,
-            Title = request.Title,
+            UserId = userId.Value,
+            Nome = request.Title,
             Description = request.Description,
-            Price = request.Price,
+            Preco = request.Price,
             DurationMinutes = request.DurationMinutes
         };
 
@@ -74,9 +74,9 @@ public class ServicesController : ControllerBase
         return CreatedAtAction(nameof(GetService), new { id = service.Id }, new
         {
             service.Id,
-            service.Title,
+            service.Nome,
             service.Description,
-            service.Price,
+            service.Preco,
             service.DurationMinutes
         });
     }
@@ -92,13 +92,13 @@ public class ServicesController : ControllerBase
             return Forbid("Apenas prestadores podem visualizar serviços próprios.");
 
         var service = await _context.Services
-            .Where(s => s.Id == id && s.ProviderId == userId)
+            .Where(s => s.Id == id && s.UserId == userId)
             .Select(s => new
             {
                 s.Id,
-                s.Title,
+                s.Nome,
                 s.Description,
-                s.Price,
+                s.Preco,
                 s.DurationMinutes
             })
             .FirstOrDefaultAsync();
@@ -123,14 +123,14 @@ public class ServicesController : ControllerBase
             return Forbid("Apenas prestadores podem atualizar serviços.");
 
         var service = await _context.Services
-            .FirstOrDefaultAsync(s => s.Id == id && s.ProviderId == userId);
+            .FirstOrDefaultAsync(s => s.Id == id && s.UserId == userId);
 
         if (service == null)
             return NotFound();
 
-        service.Title = request.Title;
+        service.Nome = request.Title;
         service.Description = request.Description;
-        service.Price = request.Price;
+        service.Preco = request.Price;
         service.DurationMinutes = request.DurationMinutes;
 
         await _context.SaveChangesAsync();
@@ -138,9 +138,9 @@ public class ServicesController : ControllerBase
         return Ok(new
         {
             service.Id,
-            service.Title,
+            service.Nome,
             service.Description,
-            service.Price,
+            service.Preco,
             service.DurationMinutes
         });
     }
@@ -156,7 +156,7 @@ public class ServicesController : ControllerBase
             return Forbid("Apenas prestadores podem excluir serviços.");
 
         var service = await _context.Services
-            .FirstOrDefaultAsync(s => s.Id == id && s.ProviderId == userId);
+            .FirstOrDefaultAsync(s => s.Id == id && s.UserId == userId);
 
         if (service == null)
             return NotFound();

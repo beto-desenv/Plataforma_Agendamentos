@@ -33,7 +33,7 @@ public class BookingsController : ControllerBase
         IQueryable<Booking> query = _context.Bookings
             .Include(b => b.Client)
             .Include(b => b.Service)
-            .ThenInclude(s => s.Provider);
+            .ThenInclude(s => s.User);
 
         if (userType == UserTypes.Cliente)
         {
@@ -41,7 +41,7 @@ public class BookingsController : ControllerBase
         }
         else if (userType == UserTypes.Prestador)
         {
-            query = query.Where(b => b.Service.ProviderId == userId);
+            query = query.Where(b => b.Service.UserId == userId);
         }
 
         var bookings = await query
@@ -57,13 +57,13 @@ public class BookingsController : ControllerBase
                 },
                 Service = new
                 {
-                    b.Service.Title,
-                    b.Service.Price,
+                    b.Service.Nome,
+                    b.Service.Preco,
                     b.Service.DurationMinutes,
                     Provider = new
                     {
-                        b.Service.Provider.Name,
-                        b.Service.Provider.DisplayName
+                        b.Service.User.Name,
+                        b.Service.User.DisplayName
                     }
                 }
             })
@@ -90,7 +90,7 @@ public class BookingsController : ControllerBase
             return BadRequest("A data do agendamento deve ser futura.");
 
         var service = await _context.Services
-            .Include(s => s.Provider)
+            .Include(s => s.User)
             .FirstOrDefaultAsync(s => s.Id == request.ServiceId);
 
         if (service == null)
@@ -101,7 +101,7 @@ public class BookingsController : ControllerBase
         var timeOfDay = request.Date.TimeOfDay;
 
         var schedule = await _context.Schedules
-            .FirstOrDefaultAsync(s => s.ProviderId == service.ProviderId && 
+            .FirstOrDefaultAsync(s => s.ProviderId == service.UserId && 
                                     s.DayOfWeek == dayOfWeek &&
                                     s.StartTime <= timeOfDay &&
                                     s.EndTime > timeOfDay);
@@ -133,7 +133,7 @@ public class BookingsController : ControllerBase
         booking = await _context.Bookings
             .Include(b => b.Client)
             .Include(b => b.Service)
-            .ThenInclude(s => s.Provider)
+            .ThenInclude(s => s.User)
             .FirstAsync(b => b.Id == booking.Id);
 
         return CreatedAtAction(nameof(GetBooking), new { id = booking.Id }, new
@@ -148,13 +148,13 @@ public class BookingsController : ControllerBase
             },
             Service = new
             {
-                booking.Service.Title,
-                booking.Service.Price,
+                booking.Service.Nome,
+                booking.Service.Preco,
                 booking.Service.DurationMinutes,
                 Provider = new
                 {
-                    booking.Service.Provider.Name,
-                    booking.Service.Provider.DisplayName
+                    booking.Service.User.Name,
+                    booking.Service.User.DisplayName
                 }
             }
         });
@@ -174,14 +174,14 @@ public class BookingsController : ControllerBase
         var booking = await _context.Bookings
             .Include(b => b.Client)
             .Include(b => b.Service)
-            .ThenInclude(s => s.Provider)
+            .ThenInclude(s => s.User)
             .FirstOrDefaultAsync(b => b.Id == id);
 
         if (booking == null)
             return NotFound();
 
         // Verificar se o usuário tem acesso a este agendamento
-        bool hasAccess = userType == UserTypes.Cliente ? booking.ClientId == userId : booking.Service.ProviderId == userId;
+        bool hasAccess = userType == UserTypes.Cliente ? booking.ClientId == userId : booking.Service.UserId == userId;
         if (!hasAccess)
             return Forbid();
 
@@ -197,13 +197,13 @@ public class BookingsController : ControllerBase
             },
             Service = new
             {
-                booking.Service.Title,
-                booking.Service.Price,
+                booking.Service.Nome,
+                booking.Service.Preco,
                 booking.Service.DurationMinutes,
                 Provider = new
                 {
-                    booking.Service.Provider.Name,
-                    booking.Service.Provider.DisplayName
+                    booking.Service.User.Name,
+                    booking.Service.User.DisplayName
                 }
             }
         });
@@ -234,7 +234,7 @@ public class BookingsController : ControllerBase
         if (booking == null)
             return NotFound();
 
-        if (booking.Service.ProviderId != userId)
+        if (booking.Service.UserId != userId)
             return Forbid();
 
         booking.Status = normalizedStatus;

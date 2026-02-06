@@ -38,9 +38,9 @@ public class PrestadorController : ControllerBase
             Services = prestador.Services.Select(s => new
             {
                 s.Id,
-                s.Title,
+                s.Nome,
                 s.Description,
-                s.Price,
+                s.Preco,
                 s.DurationMinutes
             }),
             Schedules = prestador.Schedules.Select(sc => new
@@ -71,7 +71,7 @@ public class PrestadorController : ControllerBase
 
         // Buscar agendamentos já confirmados para esta data
         var bookedTimes = await _context.Bookings
-            .Where(b => b.Service.ProviderId == prestador.Id &&
+            .Where(b => b.Service.UserId == prestador.Id &&
                        b.Date.Date == date.Date &&
                        b.Status != BookingStatuses.Cancelado)
             .Select(b => b.Date.TimeOfDay)

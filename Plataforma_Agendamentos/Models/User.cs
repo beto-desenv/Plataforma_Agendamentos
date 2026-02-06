@@ -31,6 +31,12 @@ public class User
     
     public DateTime? DataNascimento { get; set; }
     
+    [MaxLength(50)]
+    public string? EstadoCliente { get; set; }
+    
+    [MaxLength(100)]
+    public string? CidadeCliente { get; set; }
+    
     [MaxLength(200)]
     public string? EnderecoCliente { get; set; }
     
@@ -39,6 +45,14 @@ public class User
     
     [MaxLength(50)]
     public string? CPF { get; set; }
+    
+    [MaxLength(100)]
+    public string? InteressesServicos { get; set; } // JSON array: ["Limpeza", "Reparos", ...]
+    
+    [MaxLength(50)]
+    public string? ContatoPreferido { get; set; } // "whatsapp" | "telefone" | "email"
+    
+    public string? FotoPerfilUrl { get; set; }
     
     public int TotalAgendamentosCliente { get; set; } = 0;
     public DateTime? UltimoAgendamento { get; set; }
@@ -49,6 +63,14 @@ public class User
     
     [MaxLength(100)]
     public string? DisplayName { get; set; }
+    
+    [MaxLength(100)]
+    public string? TituloProfissional { get; set; } // Ex: Encanador, Eletricista
+    
+    [MaxLength(50)]
+    public string? CPFPrestador { get; set; }
+    
+    public int? AnosExperiencia { get; set; } // 0, 1, 3, 6, 11, etc
     
     public string? LogoUrl { get; set; }
     
@@ -63,6 +85,12 @@ public class User
     [MaxLength(20)]
     public string? CNPJ { get; set; }
     
+    [MaxLength(50)]
+    public string? EstadoPrestador { get; set; }
+    
+    [MaxLength(100)]
+    public string? CidadePrestador { get; set; }
+    
     [MaxLength(200)]
     public string? EnderecoPrestador { get; set; }
     
@@ -71,6 +99,8 @@ public class User
     
     [MaxLength(100)]
     public string? Site { get; set; }
+    
+    public int? RaioAtendimento { get; set; } // em km
     
     public decimal AvaliacaoMedia { get; set; } = 0;
     public int TotalAvaliacoes { get; set; } = 0;

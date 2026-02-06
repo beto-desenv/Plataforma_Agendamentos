@@ -116,6 +116,8 @@ namespace Plataforma_Agendamentos
 
                 // Services
                 builder.Services.AddScoped<JwtService>();
+                builder.Services.AddMemoryCache();
+                builder.Services.AddHttpClient<ICepService, CepService>();
 
                 // CORS Configuration - Configurado para permitir frontend em localhost:3000
                 builder.Services.AddCors(options =>

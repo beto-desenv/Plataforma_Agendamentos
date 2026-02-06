@@ -99,9 +99,9 @@ public class ProfileController : BaseApiController
                 Services = user.Services.Select(s => new
                 {
                     s.Id,
-                    s.Title,
+                    s.Nome,
                     s.Description,
-                    s.Price,
+                    s.Preco,
                     s.DurationMinutes
                 }),
                 Schedules = user.Schedules.Select(sc => new

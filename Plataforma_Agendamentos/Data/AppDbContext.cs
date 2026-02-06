@@ -29,7 +29,9 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Service>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.Price).HasColumnType("decimal(10,2)");
+            entity.Property(e => e.Preco).HasColumnType("decimal(10,2)");
+            entity.Property(e => e.CriadoEm).HasDefaultValueSql("now() at time zone 'UTC'");
+            entity.Property(e => e.AtualizadoEm).HasDefaultValueSql("now() at time zone 'UTC'");
         });
 
         // Schedule configurations
@@ -47,8 +49,8 @@ public class AppDbContext : DbContext
         // Relationships
         modelBuilder.Entity<User>()
             .HasMany(u => u.Services)
-            .WithOne(s => s.Provider)
-            .HasForeignKey(s => s.ProviderId)
+            .WithOne(s => s.User)
+            .HasForeignKey(s => s.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<User>()
