@@ -51,7 +51,9 @@
       "importante": "NÃO use /api/api/health - Use apenas /api/health",
       "baseURL": "Se baseURL = 'https://localhost:5001/api', endpoint = '/health' resulta em 'https://localhost:5001/api/health'",
       "erro_comum": "Evite concatenar /api duas vezes"
-    }
+    },
+    "development": "http://localhost:3000",
+    "vite": "http://localhost:5173"
   },
   "swagger": "https://localhost:5001/swagger",
   "environment": "development",
@@ -61,6 +63,53 @@
       "ping": "curl -k https://localhost:5001/api/health/ping",
       "home": "curl -k https://localhost:5001/",
       "swagger": "curl -k https://localhost:5001/swagger/v1/swagger.json"
+    }
+  },
+  "backend": {
+    "https": "https://localhost:5001",
+    "api": {
+      "https": "https://localhost:5001/api"
+    },
+    "swagger": "https://localhost:5001/swagger",
+    "health": "https://localhost:5001/api/health"
+  },
+  "cors": {
+    "allowedOrigins": [
+      "http://localhost:3000",
+      "https://localhost:3000",
+      "http://localhost:5173",
+      "https://localhost:5173"
+    ]
+  },
+  "endpoints": {
+    "auth": {
+      "register": "/auth/register",
+      "login": "/auth/login",
+      "profile": "/auth/profile"
+    },
+    "profile": {
+      "get": "/profile",
+      "updateCliente": "/profile/cliente",
+      "updatePrestador": "/profile/prestador"
+    },
+    "services": {
+      "list": "/services",
+      "create": "/services",
+      "get": "/services/{id}",
+      "update": "/services/{id}",
+      "delete": "/services/{id}"
+    },
+    "schedules": {
+      "list": "/schedules",
+      "create": "/schedules"
+    },
+    "bookings": {
+      "list": "/bookings",
+      "create": "/bookings"
+    },
+    "public": {
+      "prestador": "/prestador/{slug}",
+      "services": "/prestador/{slug}/services"
     }
   }
 }

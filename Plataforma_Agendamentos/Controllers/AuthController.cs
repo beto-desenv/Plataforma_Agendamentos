@@ -14,32 +14,53 @@ public class AuthController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly JwtService _jwtService;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(AppDbContext context, JwtService jwtService)
+    public AuthController(AppDbContext context, JwtService jwtService, ILogger<AuthController> logger)
     {
         _context = context;
         _jwtService = jwtService;
+        _logger = logger;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
+        _logger.LogInformation("Tentativa de registro: {Email}, Tipo: {UserType}", 
+            request.Email, request.UserTypes.FirstOrDefault());
+
         if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+            return BadRequest(new { 
+                success = false, 
+                message = "Dados invalidos", 
+                errors = ModelState 
+            });
 
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
 
         // Verificar se o email já existe
         if (await _context.Users.AnyAsync(u => u.Email == normalizedEmail))
-            return BadRequest("Email já está em uso.");
+        {
+            _logger.LogWarning("Tentativa de registro com email duplicado: {Email}", normalizedEmail);
+            return BadRequest(new { 
+                success = false, 
+                message = "Email ja esta em uso." 
+            });
+        }
 
         var userType = request.UserTypes.FirstOrDefault();
         if (string.IsNullOrWhiteSpace(userType))
-            return BadRequest("Tipo de usuário deve ser 'cliente' ou 'prestador'.");
+            return BadRequest(new { 
+                success = false, 
+                message = "Tipo de usuario deve ser 'cliente' ou 'prestador'." 
+            });
 
         // Validar tipo de usuário
         if (userType != UserTypes.Cliente && userType != UserTypes.Prestador)
-            return BadRequest("Tipo de usuário deve ser 'cliente' ou 'prestador'.");
+            return BadRequest(new { 
+                success = false, 
+                message = "Tipo de usuario deve ser 'cliente' ou 'prestador'." 
+            });
 
         var user = new User
         {
@@ -54,17 +75,24 @@ public class AuthController : ControllerBase
 
         var token = _jwtService.GenerateJwtToken(user.Id.ToString(), user.Email, user.UserType);
 
+        _logger.LogInformation("Usuario registrado com sucesso: {UserId}, {Email}", user.Id, user.Email);
+
         return Ok(new
         {
-            Token = token,
-            User = new
+            success = true,
+            message = "Usuario registrado com sucesso",
+            data = new
             {
-                user.Id,
-                user.Name,
-                user.Email,
-                user.UserType,
-                user.Slug,
-                user.DisplayName
+                token = token,
+                user = new
+                {
+                    id = user.Id,
+                    name = user.Name,
+                    email = user.Email,
+                    userType = user.UserType,
+                    slug = user.Slug,
+                    displayName = user.DisplayName
+                }
             }
         });
     }
@@ -72,29 +100,65 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
+        _logger.LogInformation("Tentativa de login: {Email}", request.Email);
+
         if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+            return BadRequest(new { 
+                success = false, 
+                message = "Dados invalidos", 
+                errors = ModelState 
+            });
 
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
-            return Unauthorized("Credenciais inválidas.");
+        {
+            _logger.LogWarning("Falha no login: {Email}", normalizedEmail);
+            return Unauthorized(new { 
+                success = false, 
+                message = "Credenciais invalidas." 
+            });
+        }
 
         var token = _jwtService.GenerateJwtToken(user.Id.ToString(), user.Email, user.UserType);
 
+        _logger.LogInformation("Login bem-sucedido: {UserId}, {Email}", user.Id, user.Email);
+
         return Ok(new
         {
-            Token = token,
-            User = new
+            success = true,
+            message = "Login realizado com sucesso",
+            data = new
             {
-                user.Id,
-                user.Name,
-                user.Email,
-                user.UserType,
-                user.Slug,
-                user.DisplayName
+                token = token,
+                user = new
+                {
+                    id = user.Id,
+                    name = user.Name,
+                    email = user.Email,
+                    userType = user.UserType,
+                    slug = user.Slug,
+                    displayName = user.DisplayName
+                }
             }
+        });
+    }
+
+    /// <summary>
+    /// Endpoint de teste para verificar se a API esta respondendo
+    /// </summary>
+    [HttpGet("ping")]
+    public IActionResult Ping()
+    {
+        _logger.LogInformation("Ping recebido de {Origin}", Request.Headers["Origin"].ToString());
+        
+        return Ok(new
+        {
+            success = true,
+            message = "API esta funcionando!",
+            timestamp = DateTime.UtcNow,
+            version = "1.0.0"
         });
     }
 }

@@ -14,7 +14,7 @@ namespace Plataforma_Agendamentos
         {
             try
             {
-                Console.WriteLine("?? Iniciando Plataforma de Agendamentos...");
+                Console.WriteLine("Iniciando Plataforma de Agendamentos...");
                 
                 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,10 +27,10 @@ namespace Plataforma_Agendamentos
                 var configuredUrls = builder.Configuration["ASPNETCORE_URLS"];
                 if (string.IsNullOrWhiteSpace(configuredUrls))
                 {
-                    builder.WebHost.UseUrls("http://localhost:5000", "https://localhost:5001");
+                    builder.WebHost.UseUrls("https://localhost:5001");
                 }
 
-                Console.WriteLine("?? Configurando serviços...");
+                Console.WriteLine("Configurando serviços...");
 
                 // Add services to the container.
                 builder.Services.AddControllers();
@@ -76,7 +76,7 @@ namespace Plataforma_Agendamentos
                 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
                     ?? "Host=localhost;Database=plataforma_agendamentos;Username=postgres;Password=postgres";
 
-                Console.WriteLine($"??? Configurando banco de dados: {connectionString.Split(';')[0]}...");
+                Console.WriteLine($"Configurando banco de dados: {connectionString.Split(';')[0]}...");
 
                 builder.Services.AddDbContext<AppDbContext>(options =>
                 {
@@ -92,7 +92,7 @@ namespace Plataforma_Agendamentos
                 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
                 var secretKey = jwtSettings["SecretKey"] ?? "sua_chave_secreta_muito_segura_com_pelo_menos_256_bits";
 
-                Console.WriteLine("?? Configurando autenticação JWT...");
+                Console.WriteLine("Configurando autenticação JWT...");
 
                 builder.Services.AddAuthentication(options =>
                 {
@@ -117,9 +117,23 @@ namespace Plataforma_Agendamentos
                 // Services
                 builder.Services.AddScoped<JwtService>();
 
-                // CORS Configuration
+                // CORS Configuration - Configurado para permitir frontend em localhost:3000
                 builder.Services.AddCors(options =>
                 {
+                    options.AddPolicy("AllowFrontend", policy =>
+                    {
+                        policy.WithOrigins(
+                                "http://localhost:3000",      // Frontend em desenvolvimento
+                                "https://localhost:3000",     // Frontend HTTPS
+                                "http://localhost:5173",      // Vite default port
+                                "https://localhost:5173"      // Vite HTTPS
+                            )
+                            .AllowAnyMethod()
+                            .AllowAnyHeader()
+                            .AllowCredentials();
+                    });
+
+                    // Policy menos restritiva para desenvolvimento
                     options.AddPolicy("AllowAll", policy =>
                     {
                         policy.AllowAnyOrigin()
@@ -128,11 +142,11 @@ namespace Plataforma_Agendamentos
                     });
                 });
 
-                Console.WriteLine("??? Construindo aplicação...");
+                Console.WriteLine("Construindo aplicação...");
                 var app = builder.Build();
 
                 // Configure the HTTP request pipeline.
-                Console.WriteLine("?? Configurando middleware...");
+                Console.WriteLine("Configurando middleware...");
                 
                 // IMPORTANTE: Swagger deve estar antes do HTTPS redirect
                 app.UseSwagger();
@@ -147,7 +161,7 @@ namespace Plataforma_Agendamentos
 
                 if (app.Environment.IsDevelopment())
                 {
-                    Console.WriteLine("?? Modo DESENVOLVIMENTO ativo");
+                    Console.WriteLine("Modo DESENVOLVIMENTO ativo");
                     app.UseDeveloperExceptionPage();
                 }
                 else
@@ -157,14 +171,14 @@ namespace Plataforma_Agendamentos
                 }
 
                 app.UseHttpsRedirection();
-                app.UseCors("AllowAll");
+                app.UseCors("AllowFrontend"); // Usar policy específica para o frontend
                 app.UseAuthentication();
                 app.UseAuthorization();
 
                 // Adicionar rota de teste na raiz
                 app.MapGet("/", () => new
                 {
-                    Message = "?? Plataforma de Agendamentos API está funcionando!",
+                    Message = "Plataforma de Agendamentos API está funcionando!",
                     Swagger = "/swagger",
                     Version = "v1.0.0",
                     Status = "OK",
@@ -182,7 +196,7 @@ namespace Plataforma_Agendamentos
                 app.MapControllers();
 
                 // Ensure database is created
-                Console.WriteLine("?? Inicializando banco de dados...");
+                Console.WriteLine("Inicializando banco de dados...");
                 try
                 {
                     using (var scope = app.Services.CreateScope())
@@ -192,54 +206,53 @@ namespace Plataforma_Agendamentos
                         
                         if (created)
                         {
-                            Console.WriteLine("? Banco de dados criado com sucesso!");
+                            Console.WriteLine("Banco de dados criado com sucesso!");
                         }
                         else
                         {
-                            Console.WriteLine("? Banco de dados já existe e está atualizado");
+                            Console.WriteLine("Banco de dados já existe e está atualizado");
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"? Erro ao inicializar banco de dados: {ex.Message}");
-                    Console.WriteLine("?? Verifique se o PostgreSQL está rodando e as credenciais estão corretas");
+                    Console.WriteLine($"Erro ao inicializar banco de dados: {ex.Message}");
+                    Console.WriteLine("Verifique se o PostgreSQL está rodando e as credenciais estão corretas");
                 }
 
                 // Log URLs da aplicação
                 Console.WriteLine();
-                Console.WriteLine("?? ===============================================");
-                Console.WriteLine("?? PLATAFORMA DE AGENDAMENTOS INICIADA!");
-                Console.WriteLine("?? ===============================================");
+                Console.WriteLine("===============================================");
+                Console.WriteLine("PLATAFORMA DE AGENDAMENTOS INICIADA!");
+                Console.WriteLine("===============================================");
                 Console.WriteLine();
-                Console.WriteLine("?? URLs disponíveis:");
-                Console.WriteLine("   ?? Home: https://localhost:5001/");
-                Console.WriteLine("   ?? Swagger: https://localhost:5001/swagger");
-                Console.WriteLine("   ?? HTTPS API: https://localhost:5001/api");
-                Console.WriteLine("   ?? HTTP API: http://localhost:5000/api");
+                Console.WriteLine("URLs disponíveis:");
+                Console.WriteLine("   Home: https://localhost:5001/");
+                Console.WriteLine("   Swagger: https://localhost:5001/swagger");
+                Console.WriteLine("   API: https://localhost:5001/api");
                 Console.WriteLine();
-                Console.WriteLine("?? Endpoints principais:");
+                Console.WriteLine("Endpoints principais:");
                 Console.WriteLine("   POST /api/auth/register - Cadastro");
                 Console.WriteLine("   POST /api/auth/login    - Login");
                 Console.WriteLine("   GET  /api/prestador/{slug} - Perfil público");
                 Console.WriteLine();
-                Console.WriteLine("?? Para testar:");
+                Console.WriteLine("Para testar:");
                 Console.WriteLine("   1. Acesse: https://localhost:5001/");
                 Console.WriteLine("   2. Acesse: https://localhost:5001/swagger");
                 Console.WriteLine("   3. Use a Collection do Postman");
                 Console.WriteLine();
-                Console.WriteLine("? Para parar a aplicação: Ctrl+C");
-                Console.WriteLine("?? ===============================================");
+                Console.WriteLine("Para parar a aplicação: Ctrl+C");
+                Console.WriteLine("===============================================");
                 Console.WriteLine();
 
                 app.Run();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"?? ERRO CRÍTICO ao iniciar aplicação: {ex.Message}");
-                Console.WriteLine($"?? Stack Trace: {ex.StackTrace}");
+                Console.WriteLine($"ERRO CRÍTICO ao iniciar aplicação: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
                 Console.WriteLine();
-                Console.WriteLine("?? Possíveis soluções:");
+                Console.WriteLine("Possíveis soluções:");
                 Console.WriteLine("   1. Verifique se as portas 5000/5001 estão livres");
                 Console.WriteLine("   2. Execute como administrador");
                 Console.WriteLine("   3. Verifique se o PostgreSQL está rodando");
