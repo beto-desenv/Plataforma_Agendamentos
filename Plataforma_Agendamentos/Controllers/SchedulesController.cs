@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Plataforma_Agendamentos.Constants;
-using Plataforma_Agendamentos.DTOs;
+using Plataforma_Agendamentos.DTOs.Schedule;
 using Plataforma_Agendamentos.Extensions;
 using Plataforma_Agendamentos.Services;
 

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Plataforma_Agendamentos.Controllers.Base;
-using Plataforma_Agendamentos.DTOs;
+using Plataforma_Agendamentos.DTOs.Profile;
 using Plataforma_Agendamentos.Services;
 
 namespace Plataforma_Agendamentos.Controllers;

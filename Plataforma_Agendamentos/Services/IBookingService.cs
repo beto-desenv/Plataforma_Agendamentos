@@ -1,5 +1,4 @@
-using Plataforma_Agendamentos.DTOs;
-using Plataforma_Agendamentos.Models;
+using Plataforma_Agendamentos.DTOs.Booking;
 
 namespace Plataforma_Agendamentos.Services;
 

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Plataforma_Agendamentos.Constants;
 using Plataforma_Agendamentos.Controllers;
 using Plataforma_Agendamentos.Data;
-using Plataforma_Agendamentos.DTOs;
+using Plataforma_Agendamentos.DTOs.Booking;
 using Plataforma_Agendamentos.Models;
 using Plataforma_Agendamentos.Services;
 using Xunit;

@@ -1,5 +1,5 @@
 using FluentValidation;
-using Plataforma_Agendamentos.DTOs;
+using Plataforma_Agendamentos.DTOs.Auth;
 
 namespace Plataforma_Agendamentos.Validators;
 

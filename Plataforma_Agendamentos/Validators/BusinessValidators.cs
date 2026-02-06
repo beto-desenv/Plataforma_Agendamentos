@@ -1,5 +1,8 @@
 using FluentValidation;
-using Plataforma_Agendamentos.DTOs;
+using Plataforma_Agendamentos.DTOs.Auth;
+using Plataforma_Agendamentos.DTOs.Booking;
+using Plataforma_Agendamentos.DTOs.Schedule;
+using Plataforma_Agendamentos.DTOs.Service;
 
 namespace Plataforma_Agendamentos.Validators;
 

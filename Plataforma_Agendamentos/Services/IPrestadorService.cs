@@ -1,4 +1,5 @@
-using Plataforma_Agendamentos.DTOs;
+using Plataforma_Agendamentos.DTOs.Prestador;
+using Plataforma_Agendamentos.DTOs.Schedule;
 
 namespace Plataforma_Agendamentos.Services;
 

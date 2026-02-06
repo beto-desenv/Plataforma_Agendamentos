@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Plataforma_Agendamentos.Constants;
 using Plataforma_Agendamentos.Data;
-using Plataforma_Agendamentos.DTOs;
+using Plataforma_Agendamentos.DTOs.Booking;
 using Plataforma_Agendamentos.Models;
 
 namespace Plataforma_Agendamentos.Services;

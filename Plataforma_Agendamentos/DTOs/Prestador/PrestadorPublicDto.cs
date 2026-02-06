@@ -1,4 +1,7 @@
-namespace Plataforma_Agendamentos.DTOs;
+using Plataforma_Agendamentos.DTOs.Schedule;
+using Plataforma_Agendamentos.DTOs.Service;
+
+namespace Plataforma_Agendamentos.DTOs.Prestador;
 
 /// <summary>
 /// DTO para perfil publico de prestador
