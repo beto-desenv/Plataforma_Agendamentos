@@ -116,6 +116,7 @@ namespace Plataforma_Agendamentos
 
                 // Services
                 builder.Services.AddScoped<JwtService>();
+                builder.Services.AddScoped<IBookingService, BookingService>();
                 builder.Services.AddMemoryCache();
                 builder.Services.AddHttpClient<ICepService, CepService>();
 

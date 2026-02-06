@@ -1,11 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Plataforma_Agendamentos.Constants;
-using Plataforma_Agendamentos.Data;
 using Plataforma_Agendamentos.DTOs;
 using Plataforma_Agendamentos.Extensions;
-using Plataforma_Agendamentos.Models;
+using Plataforma_Agendamentos.Services;
 
 namespace Plataforma_Agendamentos.Controllers;
 
@@ -14,11 +12,13 @@ namespace Plataforma_Agendamentos.Controllers;
 [Authorize]
 public class BookingsController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IBookingService _bookingService;
+    private readonly ILogger<BookingsController> _logger;
 
-    public BookingsController(AppDbContext context)
+    public BookingsController(IBookingService bookingService, ILogger<BookingsController> logger)
     {
-        _context = context;
+        _bookingService = bookingService;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -28,47 +28,11 @@ public class BookingsController : ControllerBase
         if (userId == null)
             return Unauthorized();
 
-        var userType = GetCurrentUserType();
+        var userType = User.GetUserType();
+        if (userType == null)
+            return Unauthorized();
 
-        IQueryable<Booking> query = _context.Bookings
-            .Include(b => b.Client)
-            .Include(b => b.Service)
-            .ThenInclude(s => s.User);
-
-        if (userType == UserTypes.Cliente)
-        {
-            query = query.Where(b => b.ClientId == userId);
-        }
-        else if (userType == UserTypes.Prestador)
-        {
-            query = query.Where(b => b.Service.UserId == userId);
-        }
-
-        var bookings = await query
-            .Select(b => new
-            {
-                b.Id,
-                b.Date,
-                b.Status,
-                Client = new
-                {
-                    b.Client.Name,
-                    b.Client.Email
-                },
-                Service = new
-                {
-                    b.Service.Nome,
-                    b.Service.Preco,
-                    b.Service.DurationMinutes,
-                    Provider = new
-                    {
-                        b.Service.User.Name,
-                        DisplayName = b.Service.User.PrestadorPerfil != null ? b.Service.User.PrestadorPerfil.DisplayName : b.Service.User.Name
-                    }
-                }
-            })
-            .ToListAsync();
-
+        var bookings = await _bookingService.GetBookingsByUserAsync(userId.Value, userType);
         return Ok(bookings);
     }
 
@@ -86,79 +50,16 @@ public class BookingsController : ControllerBase
         if (userType != UserTypes.Cliente)
             return Forbid("Apenas clientes podem fazer agendamentos.");
 
-        if (request.Date <= DateTime.Now)
-            return BadRequest("A data do agendamento deve ser futura.");
-
-        var service = await _context.Services
-            .Include(s => s.User)
-            .FirstOrDefaultAsync(s => s.Id == request.ServiceId);
-
-        if (service == null)
-            return BadRequest("Serviço não encontrado.");
-
-        // Verificar se a data/hora está disponível
-        var dayOfWeek = (int)request.Date.DayOfWeek;
-        var timeOfDay = request.Date.TimeOfDay;
-
-        var schedule = await _context.Schedules
-            .FirstOrDefaultAsync(s => s.ProviderId == service.UserId && 
-                                    s.DayOfWeek == dayOfWeek &&
-                                    s.StartTime <= timeOfDay &&
-                                    s.EndTime > timeOfDay);
-
-        if (schedule == null)
-            return BadRequest("Horário não disponível para este prestador.");
-
-        // Verificar se já existe agendamento para este horário
-        var existingBooking = await _context.Bookings
-            .AnyAsync(b => b.ServiceId == request.ServiceId && 
-                          b.Date == request.Date && 
-                          b.Status != BookingStatuses.Cancelado);
-
-        if (existingBooking)
-            return BadRequest("Este horário já está ocupado.");
-
-        var booking = new Booking
+        try
         {
-            ClientId = userId.Value,
-            ServiceId = request.ServiceId,
-            Date = request.Date,
-            Status = BookingStatuses.Pendente
-        };
-
-        _context.Bookings.Add(booking);
-        await _context.SaveChangesAsync();
-
-        // Recarregar com dados relacionados
-        booking = await _context.Bookings
-            .Include(b => b.Client)
-            .Include(b => b.Service)
-            .ThenInclude(s => s.User)
-                .ThenInclude(u => u.PrestadorPerfil)
-            .FirstAsync(b => b.Id == booking.Id);
-
-        return CreatedAtAction(nameof(GetBooking), new { id = booking.Id }, new
+            var booking = await _bookingService.CreateBookingAsync(userId.Value, request);
+            return CreatedAtAction(nameof(GetBooking), new { id = booking.Id }, booking);
+        }
+        catch (InvalidOperationException ex)
         {
-            booking.Id,
-            booking.Date,
-            booking.Status,
-            Client = new
-            {
-                booking.Client.Name,
-                booking.Client.Email
-            },
-            Service = new
-            {
-                booking.Service.Nome,
-                booking.Service.Preco,
-                booking.Service.DurationMinutes,
-                Provider = new
-                {
-                    booking.Service.User.Name,
-                    DisplayName = booking.Service.User.PrestadorPerfil?.DisplayName ?? booking.Service.User.Name
-                }
-            }
-        });
+            _logger.LogWarning("Erro ao criar agendamento: {Message}", ex.Message);
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpGet("{id}")]
@@ -172,43 +73,12 @@ public class BookingsController : ControllerBase
         if (userType == null)
             return Unauthorized();
 
-        var booking = await _context.Bookings
-            .Include(b => b.Client)
-            .Include(b => b.Service)
-            .ThenInclude(s => s.User)
-                .ThenInclude(u => u.PrestadorPerfil)
-            .FirstOrDefaultAsync(b => b.Id == id);
-
+        var booking = await _bookingService.GetBookingByIdAsync(id, userId.Value, userType);
+        
         if (booking == null)
             return NotFound();
 
-        // Verificar se o usuário tem acesso a este agendamento
-        bool hasAccess = userType == UserTypes.Cliente ? booking.ClientId == userId : booking.Service.UserId == userId;
-        if (!hasAccess)
-            return Forbid();
-
-        return Ok(new
-        {
-            booking.Id,
-            booking.Date,
-            booking.Status,
-            Client = new
-            {
-                booking.Client.Name,
-                booking.Client.Email
-            },
-            Service = new
-            {
-                booking.Service.Nome,
-                booking.Service.Preco,
-                booking.Service.DurationMinutes,
-                Provider = new
-                {
-                    booking.Service.User.Name,
-                    DisplayName = booking.Service.User.PrestadorPerfil?.DisplayName ?? booking.Service.User.Name
-                }
-            }
-        });
+        return Ok(booking);
     }
 
     [HttpPut("{id}/status")]
@@ -223,30 +93,21 @@ public class BookingsController : ControllerBase
             return Forbid("Apenas prestadores podem alterar o status do agendamento.");
 
         if (string.IsNullOrWhiteSpace(status))
-            return BadRequest("Status deve ser 'confirmado' ou 'cancelado'.");
+            return BadRequest("Status nao pode estar vazio");
 
-        var normalizedStatus = status.Trim().ToLowerInvariant();
-        if (normalizedStatus != BookingStatuses.Confirmado && normalizedStatus != BookingStatuses.Cancelado)
-            return BadRequest("Status deve ser 'confirmado' ou 'cancelado'.");
+        try
+        {
+            var success = await _bookingService.UpdateBookingStatusAsync(id, userId.Value, status);
+            
+            if (!success)
+                return NotFound();
 
-        var booking = await _context.Bookings
-            .Include(b => b.Service)
-            .FirstOrDefaultAsync(b => b.Id == id);
-
-        if (booking == null)
-            return NotFound();
-
-        if (booking.Service.UserId != userId)
-            return Forbid();
-
-        booking.Status = normalizedStatus;
-        await _context.SaveChangesAsync();
-
-        return Ok(new { booking.Id, booking.Status });
-    }
-
-    private string? GetCurrentUserType()
-    {
-        return User.GetUserType();
+            return Ok(new { id, status = status.Trim().ToLowerInvariant() });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning("Erro ao atualizar status: {Message}", ex.Message);
+            return BadRequest(ex.Message);
+        }
     }
 }

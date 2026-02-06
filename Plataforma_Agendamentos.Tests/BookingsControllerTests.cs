@@ -3,11 +3,13 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Plataforma_Agendamentos.Constants;
 using Plataforma_Agendamentos.Controllers;
 using Plataforma_Agendamentos.Data;
 using Plataforma_Agendamentos.DTOs;
 using Plataforma_Agendamentos.Models;
+using Plataforma_Agendamentos.Services;
 using Xunit;
 
 namespace Plataforma_Agendamentos.Tests;
@@ -77,7 +79,12 @@ public class BookingsControllerTests
         context.AddRange(client, provider, service, schedule, existingBooking);
         context.SaveChanges();
 
-        var controller = new BookingsController(context)
+        // Criar service e controller com NullLogger
+        var loggerService = NullLogger<BookingService>.Instance;
+        var bookingService = new BookingService(context, loggerService);
+        
+        var loggerController = NullLogger<BookingsController>.Instance;
+        var controller = new BookingsController(bookingService, loggerController)
         {
             ControllerContext = new ControllerContext
             {
@@ -97,7 +104,7 @@ public class BookingsControllerTests
         var result = await controller.CreateBooking(request);
 
         var badRequest = Assert.IsType<BadRequestObjectResult>(result);
-        Assert.Equal("Este horário já está ocupado.", badRequest.Value);
+        Assert.Equal("Este horario ja esta ocupado", badRequest.Value);
     }
 
     private static ClaimsPrincipal BuildClaimsPrincipal(Guid userId, string userType)
