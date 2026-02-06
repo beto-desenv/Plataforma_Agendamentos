@@ -50,6 +50,14 @@ public class ScheduleDto
     public TimeSpan EndTime { get; set; }
 }
 
+/// <summary>
+/// DTO para horarios disponiveis (movido de PrestadorDTOs.cs)
+/// </summary>
+public class AvailableTimeSlotsDto
+{
+    public IEnumerable<string> AvailableTimes { get; set; } = new List<string>();
+}
+
 public class BookingRequest
 {
     [Required]
