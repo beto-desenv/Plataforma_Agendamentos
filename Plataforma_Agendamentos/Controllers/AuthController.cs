@@ -71,6 +71,32 @@ public class AuthController : ControllerBase
         };
 
         _context.Users.Add(user);
+        
+        // Criar perfil automaticamente conforme tipo de usuario
+        if (userType == UserTypes.Cliente)
+        {
+            var clientePerfil = new ClientePerfil
+            {
+                UserId = user.Id
+            };
+            _context.ClientePerfis.Add(clientePerfil);
+        }
+        else if (userType == UserTypes.Prestador)
+        {
+            var prestadorPerfil = new PrestadorPerfil
+            {
+                UserId = user.Id,
+                DisplayName = request.Name // Usar nome como display name inicial
+            };
+            prestadorPerfil.GerarSlug(); // Gerar slug automaticamente
+            
+            _context.PrestadorPerfis.Add(prestadorPerfil);
+            
+            // Criar branding e metricas vazios
+            _context.PrestadorBrandings.Add(new PrestadorBranding { PrestadorPerfilId = prestadorPerfil.Id });
+            _context.PrestadorMetricas.Add(new PrestadorMetricas { PrestadorPerfilId = prestadorPerfil.Id });
+        }
+        
         await _context.SaveChangesAsync();
 
         var token = _jwtService.GenerateJwtToken(user.Id.ToString(), user.Email, user.UserType);
@@ -89,9 +115,7 @@ public class AuthController : ControllerBase
                     id = user.Id,
                     name = user.Name,
                     email = user.Email,
-                    userType = user.UserType,
-                    slug = user.Slug,
-                    displayName = user.DisplayName
+                    userType = user.UserType
                 }
             }
         });
@@ -110,7 +134,9 @@ public class AuthController : ControllerBase
             });
 
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
+        var user = await _context.Users
+            .Include(u => u.PrestadorPerfil)
+            .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
@@ -125,7 +151,7 @@ public class AuthController : ControllerBase
 
         _logger.LogInformation("Login bem-sucedido: {UserId}, {Email}", user.Id, user.Email);
 
-        return Ok(new
+        var response = new
         {
             success = true,
             message = "Login realizado com sucesso",
@@ -138,11 +164,13 @@ public class AuthController : ControllerBase
                     name = user.Name,
                     email = user.Email,
                     userType = user.UserType,
-                    slug = user.Slug,
-                    displayName = user.DisplayName
+                    slug = user.PrestadorPerfil?.Slug,
+                    displayName = user.PrestadorPerfil?.DisplayName
                 }
             }
-        });
+        };
+
+        return Ok(response);
     }
 
     /// <summary>

@@ -20,21 +20,33 @@ public class PrestadorController : ControllerBase
     public async Task<IActionResult> GetBySlug(string slug)
     {
         var prestador = await _context.Users
+            .Include(u => u.PrestadorPerfil)
+                .ThenInclude(p => p.Branding)
             .Include(u => u.Services)
             .Include(u => u.Schedules)
-            .FirstOrDefaultAsync(u => u.Slug == slug && u.UserType == UserTypes.Prestador);
+            .FirstOrDefaultAsync(u => u.PrestadorPerfil != null && 
+                                    u.PrestadorPerfil.Slug == slug && 
+                                    u.UserType == UserTypes.Prestador);
 
-        if (prestador == null)
+        if (prestador?.PrestadorPerfil == null)
             return NotFound("Prestador não encontrado.");
+
+        var perfil = prestador.PrestadorPerfil;
+        var branding = perfil.Branding;
 
         return Ok(new
         {
-            prestador.Slug,
-            prestador.DisplayName,
-            prestador.LogoUrl,
-            prestador.CoverImageUrl,
-            prestador.PrimaryColor,
-            prestador.Bio,
+            perfil.Slug,
+            perfil.DisplayName,
+            perfil.TituloProfissional,
+            perfil.Bio,
+            perfil.Site,
+            perfil.Telefone,
+            perfil.Cidade,
+            perfil.Estado,
+            LogoUrl = branding?.LogoUrl,
+            CoverImageUrl = branding?.CoverImageUrl,
+            PrimaryColor = branding?.PrimaryColor,
             Services = prestador.Services.Select(s => new
             {
                 s.Id,
@@ -57,8 +69,11 @@ public class PrestadorController : ControllerBase
     public async Task<IActionResult> GetAvailableTimes(string slug, [FromQuery] DateTime date)
     {
         var prestador = await _context.Users
+            .Include(u => u.PrestadorPerfil)
             .Include(u => u.Schedules)
-            .FirstOrDefaultAsync(u => u.Slug == slug && u.UserType == UserTypes.Prestador);
+            .FirstOrDefaultAsync(u => u.PrestadorPerfil != null && 
+                                    u.PrestadorPerfil.Slug == slug && 
+                                    u.UserType == UserTypes.Prestador);
 
         if (prestador == null)
             return NotFound("Prestador não encontrado.");

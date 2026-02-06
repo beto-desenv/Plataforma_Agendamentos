@@ -3,13 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Plataforma_Agendamentos.Controllers.Base;
 using Plataforma_Agendamentos.Data;
-using Plataforma_Agendamentos.DTOs;
+using Plataforma_Agendamentos.Models;
 
 namespace Plataforma_Agendamentos.Controllers;
 
-/// <summary>
-/// Controller para gerenciar perfis de usuarios (clientes e prestadores)
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -23,9 +20,6 @@ public class ProfileController : BaseApiController
         _context = context;
     }
 
-    /// <summary>
-    /// Obtem o perfil do usuario autenticado
-    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetProfile()
     {
@@ -34,6 +28,11 @@ public class ProfileController : BaseApiController
             return Unauthorized();
 
         var user = await _context.Users
+            .Include(u => u.ClientePerfil)
+            .Include(u => u.PrestadorPerfil)
+                .ThenInclude(p => p!.Branding)
+            .Include(u => u.PrestadorPerfil)
+                .ThenInclude(p => p!.Metricas)
             .Include(u => u.Services)
             .Include(u => u.Schedules)
             .FirstOrDefaultAsync(u => u.Id == userId);
@@ -41,9 +40,9 @@ public class ProfileController : BaseApiController
         if (user == null)
             return NotFound(CreateErrorResponse("Usuario nao encontrado"));
 
-        // Retornar dados conforme o tipo de usuario
         if (user.IsCliente())
         {
+            var perfil = user.ClientePerfil;
             return Ok(CreateSuccessResponse(new
             {
                 user.Id,
@@ -51,20 +50,24 @@ public class ProfileController : BaseApiController
                 user.Email,
                 user.UserType,
                 user.CreatedAt,
-                DadosCliente = new
+                DadosCliente = perfil != null ? new
                 {
-                    user.TelefoneCliente,
-                    user.DataNascimento,
-                    user.EnderecoCliente,
-                    user.CPF,
-                    user.PreferenciasNotificacao,
-                    user.TotalAgendamentosCliente,
-                    user.UltimoAgendamento
-                }
+                    perfil.Telefone,
+                    perfil.DataNascimento,
+                    perfil.Endereco,
+                    perfil.Cidade,
+                    perfil.Estado,
+                    perfil.CEP,
+                    perfil.CPF,
+                    perfil.PreferenciasNotificacao,
+                    perfil.TotalAgendamentos,
+                    perfil.UltimoAgendamento
+                } : null
             }, "Perfil do cliente obtido"));
         }
-        else // Prestador
+        else
         {
+            var perfil = user.PrestadorPerfil;
             return Ok(CreateSuccessResponse(new
             {
                 user.Id,
@@ -72,30 +75,42 @@ public class ProfileController : BaseApiController
                 user.Email,
                 user.UserType,
                 user.CreatedAt,
-                DadosPrestador = new
+                DadosPrestador = perfil != null ? new
                 {
-                    user.Slug,
-                    user.DisplayName,
-                    user.LogoUrl,
-                    user.CoverImageUrl,
-                    user.PrimaryColor,
-                    user.Bio,
-                    user.CNPJ,
-                    user.TelefonePrestador,
-                    user.EnderecoPrestador,
-                    user.Site,
-                    user.AvaliacaoMedia,
-                    user.TotalAvaliacoes,
-                    user.TotalServicos,
-                    user.TotalAgendamentosPrestador,
-                    user.AceitaAgendamentoImediato,
-                    user.HorasAntecedenciaMinima,
-                    user.PerfilAtivo,
-                    user.HorarioInicioSemana,
-                    user.HorarioFimSemana,
-                    PublicUrl = user.GetPublicUrl(),
-                    PerfilCompleto = user.TemPerfilCompleto()
-                },
+                    perfil.Slug,
+                    perfil.DisplayName,
+                    perfil.TituloProfissional,
+                    perfil.Bio,
+                    perfil.CPF,
+                    perfil.CNPJ,
+                    perfil.AnosExperiencia,
+                    perfil.Telefone,
+                    perfil.Endereco,
+                    perfil.Cidade,
+                    perfil.Estado,
+                    perfil.CEP,
+                    perfil.Site,
+                    perfil.RaioAtendimento,
+                    perfil.AceitaAgendamentoImediato,
+                    perfil.HorasAntecedenciaMinima,
+                    perfil.HorarioInicioSemana,
+                    perfil.HorarioFimSemana,
+                    PublicUrl = perfil.GetPublicUrl(),
+                    PerfilCompleto = perfil.TemPerfilCompleto(),
+                    Branding = perfil.Branding != null ? new
+                    {
+                        perfil.Branding.LogoUrl,
+                        perfil.Branding.CoverImageUrl,
+                        perfil.Branding.PrimaryColor
+                    } : null,
+                    Metricas = perfil.Metricas != null ? new
+                    {
+                        perfil.Metricas.AvaliacaoMedia,
+                        perfil.Metricas.TotalAvaliacoes,
+                        perfil.Metricas.TotalServicos,
+                        perfil.Metricas.TotalAgendamentos
+                    } : null
+                } : null,
                 Services = user.Services.Select(s => new
                 {
                     s.Id,
@@ -115,9 +130,6 @@ public class ProfileController : BaseApiController
         }
     }
 
-    /// <summary>
-    /// Atualiza perfil de CLIENTE
-    /// </summary>
     [HttpPut("cliente")]
     public async Task<IActionResult> UpdateClienteProfile([FromBody] UpdateClienteProfileRequest request)
     {
@@ -125,34 +137,53 @@ public class ProfileController : BaseApiController
         if (userId == null)
             return Unauthorized();
 
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        var user = await _context.Users
+            .Include(u => u.ClientePerfil)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+            
         if (user == null)
             return NotFound(CreateErrorResponse("Usuario nao encontrado"));
 
-        // Verificar se usuario e realmente um cliente
         if (!user.IsCliente())
             return BadRequest(CreateErrorResponse("Usuario nao e um cliente"));
 
-        // Atualizar campos fornecidos
+        if (user.ClientePerfil == null)
+        {
+            user.ClientePerfil = new ClientePerfil { UserId = user.Id };
+            _context.ClientePerfis.Add(user.ClientePerfil);
+        }
+
+        var perfil = user.ClientePerfil;
+
         if (!string.IsNullOrEmpty(request.Name))
             user.Name = request.Name.Trim();
         
-        if (!string.IsNullOrEmpty(request.TelefoneCliente))
-            user.TelefoneCliente = request.TelefoneCliente.Trim();
+        if (!string.IsNullOrEmpty(request.Telefone))
+            perfil.Telefone = request.Telefone.Trim();
         
         if (request.DataNascimento.HasValue)
-            user.DataNascimento = request.DataNascimento;
+            perfil.DataNascimento = request.DataNascimento;
         
-        if (!string.IsNullOrEmpty(request.EnderecoCliente))
-            user.EnderecoCliente = request.EnderecoCliente.Trim();
+        if (!string.IsNullOrEmpty(request.Endereco))
+            perfil.Endereco = request.Endereco.Trim();
+        
+        if (!string.IsNullOrEmpty(request.Cidade))
+            perfil.Cidade = request.Cidade.Trim();
+        
+        if (!string.IsNullOrEmpty(request.Estado))
+            perfil.Estado = request.Estado.Trim();
+        
+        if (!string.IsNullOrEmpty(request.CEP))
+            perfil.CEP = request.CEP.Trim();
         
         if (!string.IsNullOrEmpty(request.CPF))
-            user.CPF = request.CPF.Trim();
+            perfil.CPF = request.CPF.Trim();
         
         if (!string.IsNullOrEmpty(request.PreferenciasNotificacao))
-            user.PreferenciasNotificacao = request.PreferenciasNotificacao.Trim();
+            perfil.PreferenciasNotificacao = request.PreferenciasNotificacao.Trim();
 
         user.UpdatedAt = DateTime.UtcNow;
+        perfil.UpdatedAt = DateTime.UtcNow;
         
         await _context.SaveChangesAsync();
 
@@ -166,19 +197,19 @@ public class ProfileController : BaseApiController
             user.UserType,
             DadosCliente = new
             {
-                user.TelefoneCliente,
-                user.DataNascimento,
-                user.EnderecoCliente,
-                user.CPF,
-                user.PreferenciasNotificacao,
-                user.TotalAgendamentosCliente
+                perfil.Telefone,
+                perfil.DataNascimento,
+                perfil.Endereco,
+                perfil.Cidade,
+                perfil.Estado,
+                perfil.CEP,
+                perfil.CPF,
+                perfil.PreferenciasNotificacao,
+                perfil.TotalAgendamentos
             }
         }, "Perfil de cliente atualizado com sucesso"));
     }
 
-    /// <summary>
-    /// Atualiza perfil de PRESTADOR
-    /// </summary>
     [HttpPut("prestador")]
     public async Task<IActionResult> UpdatePrestadorProfile([FromBody] UpdatePrestadorProfileRequest request)
     {
@@ -186,84 +217,126 @@ public class ProfileController : BaseApiController
         if (userId == null)
             return Unauthorized();
 
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        var user = await _context.Users
+            .Include(u => u.PrestadorPerfil)
+                .ThenInclude(p => p!.Branding)
+            .Include(u => u.PrestadorPerfil)
+                .ThenInclude(p => p!.Metricas)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+            
         if (user == null)
             return NotFound(CreateErrorResponse("Usuario nao encontrado"));
 
-        // Verificar se usuario e realmente um prestador
         if (!user.IsPrestador())
             return BadRequest(CreateErrorResponse("Usuario nao e um prestador"));
 
-        // Atualizar campos fornecidos
+        if (user.PrestadorPerfil == null)
+        {
+            user.PrestadorPerfil = new PrestadorPerfil 
+            { 
+                UserId = user.Id,
+                DisplayName = user.Name
+            };
+            _context.PrestadorPerfis.Add(user.PrestadorPerfil);
+        }
+
+        var perfil = user.PrestadorPerfil;
+
         if (!string.IsNullOrEmpty(request.Name))
             user.Name = request.Name.Trim();
         
         if (!string.IsNullOrEmpty(request.DisplayName))
-            user.DisplayName = request.DisplayName.Trim();
+            perfil.DisplayName = request.DisplayName.Trim();
+        
+        if (!string.IsNullOrEmpty(request.TituloProfissional))
+            perfil.TituloProfissional = request.TituloProfissional.Trim();
         
         if (!string.IsNullOrEmpty(request.Bio))
-            user.Bio = request.Bio.Trim();
+            perfil.Bio = request.Bio.Trim();
         
-        if (!string.IsNullOrEmpty(request.TelefonePrestador))
-            user.TelefonePrestador = request.TelefonePrestador.Trim();
+        if (!string.IsNullOrEmpty(request.Telefone))
+            perfil.Telefone = request.Telefone.Trim();
         
-        if (!string.IsNullOrEmpty(request.EnderecoPrestador))
-            user.EnderecoPrestador = request.EnderecoPrestador.Trim();
+        if (!string.IsNullOrEmpty(request.Endereco))
+            perfil.Endereco = request.Endereco.Trim();
+        
+        if (!string.IsNullOrEmpty(request.Cidade))
+            perfil.Cidade = request.Cidade.Trim();
+        
+        if (!string.IsNullOrEmpty(request.Estado))
+            perfil.Estado = request.Estado.Trim();
+        
+        if (!string.IsNullOrEmpty(request.CEP))
+            perfil.CEP = request.CEP.Trim();
         
         if (!string.IsNullOrEmpty(request.Site))
-            user.Site = request.Site.Trim();
+            perfil.Site = request.Site.Trim();
         
-        if (!string.IsNullOrEmpty(request.PrimaryColor))
-            user.PrimaryColor = request.PrimaryColor;
-        
-        if (!string.IsNullOrEmpty(request.LogoUrl))
-            user.LogoUrl = request.LogoUrl;
-        
-        if (!string.IsNullOrEmpty(request.CoverImageUrl))
-            user.CoverImageUrl = request.CoverImageUrl;
+        if (!string.IsNullOrEmpty(request.CPF))
+            perfil.CPF = request.CPF.Trim();
         
         if (!string.IsNullOrEmpty(request.CNPJ))
-            user.CNPJ = request.CNPJ.Trim();
+            perfil.CNPJ = request.CNPJ.Trim();
+        
+        if (request.AnosExperiencia.HasValue)
+            perfil.AnosExperiencia = request.AnosExperiencia;
+        
+        if (request.RaioAtendimento.HasValue)
+            perfil.RaioAtendimento = request.RaioAtendimento;
         
         if (request.AceitaAgendamentoImediato.HasValue)
-            user.AceitaAgendamentoImediato = request.AceitaAgendamentoImediato.Value;
+            perfil.AceitaAgendamentoImediato = request.AceitaAgendamentoImediato.Value;
         
         if (request.HorasAntecedenciaMinima.HasValue)
-            user.HorasAntecedenciaMinima = request.HorasAntecedenciaMinima.Value;
-        
-        if (request.PerfilAtivo.HasValue)
-            user.PerfilAtivo = request.PerfilAtivo.Value;
+            perfil.HorasAntecedenciaMinima = request.HorasAntecedenciaMinima.Value;
         
         if (!string.IsNullOrEmpty(request.HorarioInicioSemana))
-            user.HorarioInicioSemana = request.HorarioInicioSemana.Trim();
+            perfil.HorarioInicioSemana = request.HorarioInicioSemana.Trim();
         
         if (!string.IsNullOrEmpty(request.HorarioFimSemana))
-            user.HorarioFimSemana = request.HorarioFimSemana.Trim();
+            perfil.HorarioFimSemana = request.HorarioFimSemana.Trim();
 
-        // Atualizar slug se necessario
         if (!string.IsNullOrEmpty(request.Slug))
         {
             var normalizedSlug = request.Slug.Trim().ToLowerInvariant();
             
-            // Verificar se slug nao esta em uso e e diferente do atual
-            if (normalizedSlug != user.Slug && await _context.Users.AnyAsync(u => u.Slug == normalizedSlug && u.Id != userId))
+            if (normalizedSlug != perfil.Slug && 
+                await _context.PrestadorPerfis.AnyAsync(p => p.Slug == normalizedSlug && p.UserId != userId))
             {
                 return BadRequest(CreateErrorResponse("Slug ja esta em uso por outro prestador"));
             }
             
-            user.Slug = normalizedSlug;
+            perfil.Slug = normalizedSlug;
         }
-        else if (string.IsNullOrEmpty(user.Slug))
+        else if (string.IsNullOrEmpty(perfil.Slug))
         {
-            // Gerar slug automaticamente se nao existir
-            user.GerarSlug();
+            perfil.GerarSlug();
+        }
+
+        if (request.LogoUrl != null || request.CoverImageUrl != null || request.PrimaryColor != null)
+        {
+            if (perfil.Branding == null)
+            {
+                perfil.Branding = new PrestadorBranding { PrestadorPerfilId = perfil.Id };
+                _context.PrestadorBrandings.Add(perfil.Branding);
+            }
+
+            if (request.LogoUrl != null)
+                perfil.Branding.LogoUrl = request.LogoUrl;
+            
+            if (request.CoverImageUrl != null)
+                perfil.Branding.CoverImageUrl = request.CoverImageUrl;
+            
+            if (request.PrimaryColor != null)
+                perfil.Branding.PrimaryColor = request.PrimaryColor;
         }
 
         user.UpdatedAt = DateTime.UtcNow;
+        perfil.UpdatedAt = DateTime.UtcNow;
         
         await _context.SaveChangesAsync();
 
-        LogBusinessOperation("PRESTADOR_PROFILE_UPDATE", "User", userId, new { Slug = user.Slug });
+        LogBusinessOperation("PRESTADOR_PROFILE_UPDATE", "User", userId, new { Slug = perfil.Slug });
 
         return Ok(CreateSuccessResponse(new
         {
@@ -273,93 +346,52 @@ public class ProfileController : BaseApiController
             user.UserType,
             DadosPrestador = new
             {
-                user.Slug,
-                user.DisplayName,
-                user.Bio,
-                user.TelefonePrestador,
-                user.EnderecoPrestador,
-                user.Site,
-                user.PrimaryColor,
-                user.LogoUrl,
-                user.CoverImageUrl,
-                user.CNPJ,
-                user.AceitaAgendamentoImediato,
-                user.HorasAntecedenciaMinima,
-                user.PerfilAtivo,
-                user.HorarioInicioSemana,
-                user.HorarioFimSemana,
-                PublicUrl = user.GetPublicUrl(),
-                PerfilCompleto = user.TemPerfilCompleto(),
-                user.AvaliacaoMedia,
-                user.TotalServicos,
-                user.TotalAgendamentosPrestador
+                perfil.Slug,
+                perfil.DisplayName,
+                perfil.TituloProfissional,
+                perfil.Bio,
+                perfil.CPF,
+                perfil.CNPJ,
+                perfil.AnosExperiencia,
+                perfil.Telefone,
+                perfil.Endereco,
+                perfil.Cidade,
+                perfil.Estado,
+                perfil.CEP,
+                perfil.Site,
+                perfil.RaioAtendimento,
+                perfil.AceitaAgendamentoImediato,
+                perfil.HorasAntecedenciaMinima,
+                perfil.HorarioInicioSemana,
+                perfil.HorarioFimSemana,
+                PublicUrl = perfil.GetPublicUrl(),
+                PerfilCompleto = perfil.TemPerfilCompleto(),
+                Branding = perfil.Branding != null ? new
+                {
+                    perfil.Branding.LogoUrl,
+                    perfil.Branding.CoverImageUrl,
+                    perfil.Branding.PrimaryColor
+                } : null,
+                Metricas = perfil.Metricas != null ? new
+                {
+                    perfil.Metricas.AvaliacaoMedia,
+                    perfil.Metricas.TotalServicos,
+                    perfil.Metricas.TotalAgendamentos
+                } : null
             }
         }, "Perfil de prestador atualizado com sucesso"));
     }
-
-    /// <summary>
-    /// Endpoint legado - atualiza perfil de prestador (manter compatibilidade)
-    /// </summary>
-    [HttpPut]
-    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
-    {
-        var userId = GetCurrentUserId();
-        if (userId == null)
-            return Unauthorized();
-
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null)
-            return NotFound(CreateErrorResponse("Usuario nao encontrado"));
-
-        // Se for prestador, usar campos de prestador
-        if (user.IsPrestador())
-        {
-            var normalizedSlug = request.Slug?.Trim().ToLowerInvariant();
-
-            // Combinar verificacao de slug nao vazio e diferente do atual
-            if (!string.IsNullOrEmpty(normalizedSlug) && 
-                normalizedSlug != user.Slug && 
-                await _context.Users.AnyAsync(u => u.Slug == normalizedSlug && u.Id != userId))
-            {
-                return BadRequest(CreateErrorResponse("Slug ja esta em uso"));
-            }
-
-            user.Slug = normalizedSlug ?? user.Slug;
-            user.DisplayName = request.DisplayName ?? user.DisplayName;
-            user.LogoUrl = request.LogoUrl ?? user.LogoUrl;
-            user.CoverImageUrl = request.CoverImageUrl ?? user.CoverImageUrl;
-            user.PrimaryColor = request.PrimaryColor ?? user.PrimaryColor;
-            user.Bio = request.Bio ?? user.Bio;
-            user.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(CreateSuccessResponse(new
-            {
-                user.Id,
-                user.Name,
-                user.Email,
-                user.UserType,
-                user.Slug,
-                user.DisplayName,
-                user.LogoUrl,
-                user.CoverImageUrl,
-                user.PrimaryColor,
-                user.Bio
-            }, "Perfil atualizado"));
-        }
-
-        return BadRequest(CreateErrorResponse("Use /api/profile/cliente ou /api/profile/prestador para atualizacao especifica"));
-    }
 }
 
-// DTOs para atualizacao de perfil
 public class UpdateClienteProfileRequest
 {
     public string? Name { get; set; }
-    public string? TelefoneCliente { get; set; }
+    public string? Telefone { get; set; }
     public DateTime? DataNascimento { get; set; }
-    public string? EnderecoCliente { get; set; }
+    public string? Endereco { get; set; }
+    public string? Cidade { get; set; }
+    public string? Estado { get; set; }
+    public string? CEP { get; set; }
     public string? CPF { get; set; }
     public string? PreferenciasNotificacao { get; set; }
 }
@@ -369,17 +401,23 @@ public class UpdatePrestadorProfileRequest
     public string? Name { get; set; }
     public string? DisplayName { get; set; }
     public string? Slug { get; set; }
+    public string? TituloProfissional { get; set; }
     public string? Bio { get; set; }
-    public string? TelefonePrestador { get; set; }
-    public string? EnderecoPrestador { get; set; }
-    public string? Site { get; set; }
-    public string? PrimaryColor { get; set; }
-    public string? LogoUrl { get; set; }
-    public string? CoverImageUrl { get; set; }
+    public string? CPF { get; set; }
     public string? CNPJ { get; set; }
+    public int? AnosExperiencia { get; set; }
+    public string? Telefone { get; set; }
+    public string? Endereco { get; set; }
+    public string? Cidade { get; set; }
+    public string? Estado { get; set; }
+    public string? CEP { get; set; }
+    public string? Site { get; set; }
+    public int? RaioAtendimento { get; set; }
     public bool? AceitaAgendamentoImediato { get; set; }
     public int? HorasAntecedenciaMinima { get; set; }
-    public bool? PerfilAtivo { get; set; }
     public string? HorarioInicioSemana { get; set; }
     public string? HorarioFimSemana { get; set; }
+    public string? LogoUrl { get; set; }
+    public string? CoverImageUrl { get; set; }
+    public string? PrimaryColor { get; set; }
 }

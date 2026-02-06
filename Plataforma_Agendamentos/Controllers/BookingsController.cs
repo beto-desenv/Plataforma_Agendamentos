@@ -63,7 +63,7 @@ public class BookingsController : ControllerBase
                     Provider = new
                     {
                         b.Service.User.Name,
-                        b.Service.User.DisplayName
+                        DisplayName = b.Service.User.PrestadorPerfil != null ? b.Service.User.PrestadorPerfil.DisplayName : b.Service.User.Name
                     }
                 }
             })
@@ -134,6 +134,7 @@ public class BookingsController : ControllerBase
             .Include(b => b.Client)
             .Include(b => b.Service)
             .ThenInclude(s => s.User)
+                .ThenInclude(u => u.PrestadorPerfil)
             .FirstAsync(b => b.Id == booking.Id);
 
         return CreatedAtAction(nameof(GetBooking), new { id = booking.Id }, new
@@ -154,7 +155,7 @@ public class BookingsController : ControllerBase
                 Provider = new
                 {
                     booking.Service.User.Name,
-                    booking.Service.User.DisplayName
+                    DisplayName = booking.Service.User.PrestadorPerfil?.DisplayName ?? booking.Service.User.Name
                 }
             }
         });
@@ -175,6 +176,7 @@ public class BookingsController : ControllerBase
             .Include(b => b.Client)
             .Include(b => b.Service)
             .ThenInclude(s => s.User)
+                .ThenInclude(u => u.PrestadorPerfil)
             .FirstOrDefaultAsync(b => b.Id == id);
 
         if (booking == null)
@@ -203,7 +205,7 @@ public class BookingsController : ControllerBase
                 Provider = new
                 {
                     booking.Service.User.Name,
-                    booking.Service.User.DisplayName
+                    DisplayName = booking.Service.User.PrestadorPerfil?.DisplayName ?? booking.Service.User.Name
                 }
             }
         });
