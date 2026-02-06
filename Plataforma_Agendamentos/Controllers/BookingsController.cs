@@ -167,7 +167,7 @@ public class BookingsController : ControllerBase
         if (userId == null)
             return Unauthorized();
 
-        var userType = User.GetUserType();
+        var userType = GetCurrentUserType();
 
         var booking = await _context.Bookings
             .Include(b => b.Client)
@@ -239,5 +239,8 @@ public class BookingsController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(new { booking.Id, booking.Status });
+    }
+}
+        return User.FindFirst("UserType")?.Value;
     }
 }

@@ -13,8 +13,9 @@ namespace Plataforma_Agendamentos.Controllers;
 public class ProfileController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly ILogger<ProfileController> _logger;
 
-    public ProfileController(AppDbContext context)
+    public ProfileController(AppDbContext context, ILogger<ProfileController> logger)
     {
         _context = context;
     }

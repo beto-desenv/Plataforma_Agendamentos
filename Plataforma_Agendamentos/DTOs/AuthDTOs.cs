@@ -27,7 +27,13 @@ public class RegisterRequest
     public string Password { get; set; } = string.Empty;
     
     [Required]
-    public string UserType { get; set; } = string.Empty; // cliente ou prestador
+    public List<string> UserTypes { get; set; } = new List<string>(); // ["cliente", "prestador"]
+}
+
+public class AddRoleRequest
+{
+    [Required]
+    public string Role { get; set; } = string.Empty; // "cliente" ou "prestador"
 }
 
 public class UpdateProfileRequest

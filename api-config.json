@@ -1,0 +1,66 @@
+{
+  "name": "Plataforma de Agendamentos - Configuração CORRETA da API",
+  "description": "URLs corretas para o frontend conectar na API - SEM DUPLO /api",
+  "api": {
+    "baseUrl": "https://localhost:5001/api",
+    "baseUrlHttp": "http://localhost:5000/api",
+    "endpoints": {
+      "health": "/health",
+      "healthPing": "/health/ping",
+      "healthInfo": "/health/info",
+      "authLogin": "/auth/login",
+      "authRegister": "/auth/register",
+      "authProfile": "/auth/profile",
+      "profile": "/profile",
+      "services": "/services",
+      "schedules": "/schedules",
+      "bookings": "/bookings",
+      "publicPrestador": "/prestador/{slug}"
+    }
+  },
+  "urlsCompletas": {
+    "home": "https://localhost:5001/",
+    "swagger": "https://localhost:5001/swagger",
+    "swaggerJson": "https://localhost:5001/swagger/v1/swagger.json",
+    "health": "https://localhost:5001/api/health",
+    "healthPing": "https://localhost:5001/api/health/ping",
+    "healthInfo": "https://localhost:5001/api/health/info",
+    "authLogin": "https://localhost:5001/api/auth/login",
+    "authRegister": "https://localhost:5001/api/auth/register",
+    "authProfile": "https://localhost:5001/api/auth/profile"
+  },
+  "frontend": {
+    "axiosConfig": {
+      "baseURL": "https://localhost:5001/api",
+      "timeout": 30000,
+      "headers": {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      }
+    },
+    "healthCheck": {
+      "enabled": true,
+      "interval": 30000,
+      "endpoints": [
+        "/health/ping",
+        "/health",
+        "/auth/profile"
+      ]
+    },
+    "avisos": {
+      "importante": "NÃO use /api/api/health - Use apenas /api/health",
+      "baseURL": "Se baseURL = 'https://localhost:5001/api', endpoint = '/health' resulta em 'https://localhost:5001/api/health'",
+      "erro_comum": "Evite concatenar /api duas vezes"
+    }
+  },
+  "swagger": "https://localhost:5001/swagger",
+  "environment": "development",
+  "testUrls": {
+    "curl_examples": {
+      "health": "curl -k https://localhost:5001/api/health",
+      "ping": "curl -k https://localhost:5001/api/health/ping",
+      "home": "curl -k https://localhost:5001/",
+      "swagger": "curl -k https://localhost:5001/swagger/v1/swagger.json"
+    }
+  }
+}

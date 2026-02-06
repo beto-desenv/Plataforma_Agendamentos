@@ -1,6 +1,153 @@
-@Plataforma_Agendamentos_HostAddress = http://localhost:5218
+@Plataforma_Agendamentos_HostAddress = https://localhost:5001
+@Plataforma_Agendamentos_HostAddress_HTTP = http://localhost:5000
 
-GET {{Plataforma_Agendamentos_HostAddress}}/weatherforecast/
+### Health Check - Verificar se API está funcionando
+GET {{Plataforma_Agendamentos_HostAddress}}/api/health
+Accept: application/json
+
+###
+
+### Health Check Ping - Verificação rápida
+GET {{Plataforma_Agendamentos_HostAddress}}/api/health/ping
+Accept: application/json
+
+###
+
+### Health Check Info - Informações do sistema
+GET {{Plataforma_Agendamentos_HostAddress}}/api/health/info
+Accept: application/json
+
+###
+
+### Home - Informações da API
+GET {{Plataforma_Agendamentos_HostAddress}}/
+Accept: application/json
+
+###
+
+### Registro de Usuário Cliente
+POST {{Plataforma_Agendamentos_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "João Silva",
+  "email": "joao.cliente@email.com",
+  "password": "123456",
+  "userTypes": ["cliente"]
+}
+
+###
+
+### Registro de Usuário Prestador
+POST {{Plataforma_Agendamentos_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Maria Prestadora",
+  "email": "maria.prestadora@email.com",
+  "password": "123456",
+  "userTypes": ["prestador"]
+}
+
+###
+
+### Login
+POST {{Plataforma_Agendamentos_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "joao.cliente@email.com",
+  "password": "123456"
+}
+
+###
+
+### Obter Perfil do Usuário (requer token JWT)
+GET {{Plataforma_Agendamentos_HostAddress}}/api/auth/profile
+Accept: application/json
+Authorization: Bearer {{$auth.token}}
+
+###
+
+### Listar Serviços (requer token de prestador)
+GET {{Plataforma_Agendamentos_HostAddress}}/api/services
+Accept: application/json
+Authorization: Bearer {{$auth.token}}
+
+###
+
+### Criar Serviço (requer token de prestador)
+POST {{Plataforma_Agendamentos_HostAddress}}/api/services
+Content-Type: application/json
+Authorization: Bearer {{$auth.token}}
+
+{
+  "title": "Corte de Cabelo",
+  "description": "Corte de cabelo masculino e feminino",
+  "price": 25.00,
+  "durationMinutes": 60
+}
+
+###
+
+### Listar Horários Disponíveis (requer token de prestador)
+GET {{Plataforma_Agendamentos_HostAddress}}/api/schedules
+Accept: application/json
+Authorization: Bearer {{$auth.token}}
+
+###
+
+### Criar Horário Disponível (requer token de prestador)
+POST {{Plataforma_Agendamentos_HostAddress}}/api/schedules
+Content-Type: application/json
+Authorization: Bearer {{$auth.token}}
+
+{
+  "serviceId": "00000000-0000-0000-0000-000000000000",
+  "availableDate": "2024-12-20T10:00:00",
+  "isAvailable": true
+}
+
+###
+
+### Listar Agendamentos (requer token de cliente)
+GET {{Plataforma_Agendamentos_HostAddress}}/api/bookings
+Accept: application/json
+Authorization: Bearer {{$auth.token}}
+
+###
+
+### Fazer Agendamento (requer token de cliente)
+POST {{Plataforma_Agendamentos_HostAddress}}/api/bookings
+Content-Type: application/json
+Authorization: Bearer {{$auth.token}}
+
+{
+  "scheduleId": "00000000-0000-0000-0000-000000000000",
+  "notes": "Observações sobre o agendamento"
+}
+
+###
+
+### Perfil Público do Prestador (sem autenticação)
+GET {{Plataforma_Agendamentos_HostAddress}}/api/prestador/maria-prestadora
+Accept: application/json
+
+###
+
+### Serviços Públicos do Prestador (sem autenticação)
+GET {{Plataforma_Agendamentos_HostAddress}}/api/prestador/maria-prestadora/services
+Accept: application/json
+
+###
+
+### Swagger Documentation
+GET {{Plataforma_Agendamentos_HostAddress}}/swagger
+
+###
+
+### Swagger JSON
+GET {{Plataforma_Agendamentos_HostAddress}}/swagger/v1/swagger.json
 Accept: application/json
 
 ###

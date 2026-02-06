@@ -19,9 +19,9 @@ public class User
     
     [Required]
     [MaxLength(20)]
-    public string UserType { get; set; } = string.Empty; // cliente ou prestador
+    public string UserType { get; set; } = string.Empty; // Voltando temporariamente ao singular
 
-    // Perfil público
+    // Perfil público (só para prestadores)
     [MaxLength(100)]
     public string? Slug { get; set; }
     
