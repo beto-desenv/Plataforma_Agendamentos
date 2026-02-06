@@ -183,23 +183,8 @@ namespace Plataforma_Agendamentos
                 app.UseAuthentication();
                 app.UseAuthorization();
 
-                // Adicionar rota de teste na raiz
-                app.MapGet("/", () => new
-                {
-                    Message = "Plataforma de Agendamentos API está funcionando!",
-                    Swagger = "/swagger",
-                    Version = "v1.0.0",
-                    Status = "OK",
-                    Endpoints = new
-                    {
-                        Auth = "/api/auth",
-                        Profile = "/api/profile",
-                        Services = "/api/services",
-                        Schedules = "/api/schedules",
-                        Bookings = "/api/bookings",
-                        Public = "/api/prestador/{slug}"
-                    }
-                });
+                // Redirecionar raiz para Swagger
+                app.MapGet("/", () => Results.Redirect("/swagger"));
 
                 app.MapControllers();
 
@@ -235,19 +220,20 @@ namespace Plataforma_Agendamentos
                 Console.WriteLine("===============================================");
                 Console.WriteLine();
                 Console.WriteLine("URLs disponíveis:");
-                Console.WriteLine("   Home: https://localhost:5001/");
                 Console.WriteLine("   Swagger: https://localhost:5001/swagger");
-                Console.WriteLine("   API: https://localhost:5001/api");
+                Console.WriteLine("   Health Check: https://localhost:5001/api/health");
+                Console.WriteLine("   API Info: https://localhost:5001/api/health/info");
                 Console.WriteLine();
-                Console.WriteLine("Endpoints principais:");
-                Console.WriteLine("   POST /api/auth/register - Cadastro");
-                Console.WriteLine("   POST /api/auth/login    - Login");
-                Console.WriteLine("   GET  /api/prestador/{slug} - Perfil público");
+                Console.WriteLine("Principais recursos:");
+                Console.WriteLine("   - Autenticacao JWT");
+                Console.WriteLine("   - Gerenciamento de Servicos");
+                Console.WriteLine("   - Sistema de Agendamentos");
+                Console.WriteLine("   - Perfis de Cliente e Prestador");
                 Console.WriteLine();
                 Console.WriteLine("Para testar:");
-                Console.WriteLine("   1. Acesse: https://localhost:5001/");
-                Console.WriteLine("   2. Acesse: https://localhost:5001/swagger");
-                Console.WriteLine("   3. Use a Collection do Postman");
+                Console.WriteLine("   1. Acesse: https://localhost:5001/swagger");
+                Console.WriteLine("   2. Veja endpoints: GET /api/health/info");
+                Console.WriteLine("   3. Use Postman ou outra ferramenta REST");
                 Console.WriteLine();
                 Console.WriteLine("Para parar a aplicação: Ctrl+C");
                 Console.WriteLine("===============================================");

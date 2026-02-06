@@ -63,10 +63,10 @@ dotnet run
 ```
 
 ### 3. Acessar
-- **API**: `https://localhost:5001/api`
+- **Raiz**: `https://localhost:5001/` (redireciona para Swagger)
 - **Swagger**: `https://localhost:5001/swagger`
-- **Health**: `https://localhost:5001/api/health`
-
+- **Health Check**: `https://localhost:5001/api/health`
+- **API Info**: `https://localhost:5001/api/health/info` (lista todos os endpoints)
 ## Estrutura de Usuarios
 
 ### Cliente

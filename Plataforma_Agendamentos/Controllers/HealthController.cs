@@ -173,7 +173,57 @@ public class HealthController : BaseApiController
                 name = "Plataforma de Agendamentos",
                 version = "1.0.0",
                 environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production",
-                framework = ".NET 8.0"
+                framework = ".NET 8.0",
+                swagger = "/swagger"
+            },
+            endpoints = new
+            {
+                auth = new
+                {
+                    register = "POST /api/auth/register",
+                    login = "POST /api/auth/login"
+                },
+                health = new
+                {
+                    status = "GET /api/health",
+                    ping = "GET /api/health/ping",
+                    info = "GET /api/health/info"
+                },
+                profile = new
+                {
+                    get = "GET /api/profile",
+                    updateCliente = "PUT /api/profile/cliente",
+                    updatePrestador = "PUT /api/profile/prestador"
+                },
+                services = new
+                {
+                    list = "GET /api/services",
+                    create = "POST /api/services",
+                    get = "GET /api/services/{id}",
+                    update = "PUT /api/services/{id}",
+                    delete = "DELETE /api/services/{id}"
+                },
+                schedules = new
+                {
+                    list = "GET /api/schedules",
+                    create = "POST /api/schedules",
+                    get = "GET /api/schedules/{id}",
+                    update = "PUT /api/schedules/{id}",
+                    delete = "DELETE /api/schedules/{id}"
+                },
+                bookings = new
+                {
+                    list = "GET /api/bookings",
+                    create = "POST /api/bookings",
+                    get = "GET /api/bookings/{id}",
+                    updateStatus = "PUT /api/bookings/{id}/status"
+                },
+                publicAccess = new
+                {
+                    prestador = "GET /api/prestador/{slug}",
+                    availableTimes = "GET /api/prestador/{slug}/available-times",
+                    cep = "POST /api/ceps/consultar"
+                }
             },
             system = new
             {
