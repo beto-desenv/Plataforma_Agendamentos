@@ -245,12 +245,11 @@ public class ProfileController : BaseApiController
         {
             var normalizedSlug = request.Slug.Trim().ToLowerInvariant();
             
-            // Verificar se slug nao esta em uso
-            var slugExists = await _context.Users
-                .AnyAsync(u => u.Slug == normalizedSlug && u.Id != userId);
-            
-            if (slugExists)
+            // Verificar se slug nao esta em uso e e diferente do atual
+            if (normalizedSlug != user.Slug && await _context.Users.AnyAsync(u => u.Slug == normalizedSlug && u.Id != userId))
+            {
                 return BadRequest(CreateErrorResponse("Slug ja esta em uso por outro prestador"));
+            }
             
             user.Slug = normalizedSlug;
         }
@@ -317,10 +316,12 @@ public class ProfileController : BaseApiController
         {
             var normalizedSlug = request.Slug?.Trim().ToLowerInvariant();
 
-            if (!string.IsNullOrEmpty(normalizedSlug) && normalizedSlug != user.Slug)
+            // Combinar verificacao de slug nao vazio e diferente do atual
+            if (!string.IsNullOrEmpty(normalizedSlug) && 
+                normalizedSlug != user.Slug && 
+                await _context.Users.AnyAsync(u => u.Slug == normalizedSlug && u.Id != userId))
             {
-                if (await _context.Users.AnyAsync(u => u.Slug == normalizedSlug && u.Id != userId))
-                    return BadRequest(CreateErrorResponse("Slug ja esta em uso"));
+                return BadRequest(CreateErrorResponse("Slug ja esta em uso"));
             }
 
             user.Slug = normalizedSlug ?? user.Slug;
