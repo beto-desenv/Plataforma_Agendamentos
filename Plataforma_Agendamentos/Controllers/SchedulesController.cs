@@ -1,11 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Plataforma_Agendamentos.Constants;
-using Plataforma_Agendamentos.Data;
 using Plataforma_Agendamentos.DTOs;
 using Plataforma_Agendamentos.Extensions;
-using Plataforma_Agendamentos.Models;
+using Plataforma_Agendamentos.Services;
 
 namespace Plataforma_Agendamentos.Controllers;
 
@@ -14,11 +12,13 @@ namespace Plataforma_Agendamentos.Controllers;
 [Authorize]
 public class SchedulesController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IScheduleService _scheduleService;
+    private readonly ILogger<SchedulesController> _logger;
 
-    public SchedulesController(AppDbContext context)
+    public SchedulesController(IScheduleService scheduleService, ILogger<SchedulesController> logger)
     {
-        _context = context;
+        _scheduleService = scheduleService;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -29,19 +29,9 @@ public class SchedulesController : ControllerBase
             return Unauthorized();
 
         if (User.GetUserType() != UserTypes.Prestador)
-            return Forbid("Apenas prestadores podem gerenciar horários.");
+            return Forbid("Apenas prestadores podem gerenciar horarios");
 
-        var schedules = await _context.Schedules
-            .Where(s => s.ProviderId == userId)
-            .Select(s => new
-            {
-                s.Id,
-                s.DayOfWeek,
-                s.StartTime,
-                s.EndTime
-            })
-            .ToListAsync();
-
+        var schedules = await _scheduleService.GetSchedulesByProviderAsync(userId.Value);
         return Ok(schedules);
     }
 
@@ -56,36 +46,18 @@ public class SchedulesController : ControllerBase
             return Unauthorized();
 
         if (User.GetUserType() != UserTypes.Prestador)
-            return Forbid("Apenas prestadores podem criar horários.");
+            return Forbid("Apenas prestadores podem criar horarios");
 
-        // Verificar se já existe horário para este dia da semana
-        var existingSchedule = await _context.Schedules
-            .FirstOrDefaultAsync(s => s.ProviderId == userId && s.DayOfWeek == request.DayOfWeek);
-
-        if (existingSchedule != null)
-            return BadRequest("Já existe um horário cadastrado para este dia da semana.");
-
-        if (request.StartTime >= request.EndTime)
-            return BadRequest("Horário de início deve ser anterior ao horário de fim.");
-
-        var schedule = new Schedule
+        try
         {
-            ProviderId = userId.Value,
-            DayOfWeek = request.DayOfWeek,
-            StartTime = request.StartTime,
-            EndTime = request.EndTime
-        };
-
-        _context.Schedules.Add(schedule);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetSchedule), new { id = schedule.Id }, new
+            var schedule = await _scheduleService.CreateScheduleAsync(userId.Value, request);
+            return CreatedAtAction(nameof(GetSchedule), new { id = schedule.Id }, schedule);
+        }
+        catch (InvalidOperationException ex)
         {
-            schedule.Id,
-            schedule.DayOfWeek,
-            schedule.StartTime,
-            schedule.EndTime
-        });
+            _logger.LogWarning("Erro ao criar horario: {Message}", ex.Message);
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpGet("{id}")]
@@ -96,18 +68,9 @@ public class SchedulesController : ControllerBase
             return Unauthorized();
 
         if (User.GetUserType() != UserTypes.Prestador)
-            return Forbid("Apenas prestadores podem visualizar horários próprios.");
+            return Forbid("Apenas prestadores podem visualizar horarios proprios");
 
-        var schedule = await _context.Schedules
-            .Where(s => s.Id == id && s.ProviderId == userId)
-            .Select(s => new
-            {
-                s.Id,
-                s.DayOfWeek,
-                s.StartTime,
-                s.EndTime
-            })
-            .FirstOrDefaultAsync();
+        var schedule = await _scheduleService.GetScheduleByIdAsync(id, userId.Value);
 
         if (schedule == null)
             return NotFound();
@@ -126,37 +89,18 @@ public class SchedulesController : ControllerBase
             return Unauthorized();
 
         if (User.GetUserType() != UserTypes.Prestador)
-            return Forbid("Apenas prestadores podem atualizar horários.");
+            return Forbid("Apenas prestadores podem atualizar horarios");
 
-        var schedule = await _context.Schedules
-            .FirstOrDefaultAsync(s => s.Id == id && s.ProviderId == userId);
-
-        if (schedule == null)
-            return NotFound();
-
-        if (request.StartTime >= request.EndTime)
-            return BadRequest("Horário de início deve ser anterior ao horário de fim.");
-
-        // Verificar se já existe outro horário para este dia da semana
-        var existingSchedule = await _context.Schedules
-            .FirstOrDefaultAsync(s => s.ProviderId == userId && s.DayOfWeek == request.DayOfWeek && s.Id != id);
-
-        if (existingSchedule != null)
-            return BadRequest("Já existe um horário cadastrado para este dia da semana.");
-
-        schedule.DayOfWeek = request.DayOfWeek;
-        schedule.StartTime = request.StartTime;
-        schedule.EndTime = request.EndTime;
-
-        await _context.SaveChangesAsync();
-
-        return Ok(new
+        try
         {
-            schedule.Id,
-            schedule.DayOfWeek,
-            schedule.StartTime,
-            schedule.EndTime
-        });
+            var schedule = await _scheduleService.UpdateScheduleAsync(id, userId.Value, request);
+            return Ok(schedule);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning("Erro ao atualizar horario: {Message}", ex.Message);
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpDelete("{id}")]
@@ -167,18 +111,13 @@ public class SchedulesController : ControllerBase
             return Unauthorized();
 
         if (User.GetUserType() != UserTypes.Prestador)
-            return Forbid("Apenas prestadores podem excluir horários.");
+            return Forbid("Apenas prestadores podem excluir horarios");
 
-        var schedule = await _context.Schedules
-            .FirstOrDefaultAsync(s => s.Id == id && s.ProviderId == userId);
+        var deleted = await _scheduleService.DeleteScheduleAsync(id, userId.Value);
 
-        if (schedule == null)
+        if (!deleted)
             return NotFound();
-
-        _context.Schedules.Remove(schedule);
-        await _context.SaveChangesAsync();
 
         return NoContent();
     }
-
 }

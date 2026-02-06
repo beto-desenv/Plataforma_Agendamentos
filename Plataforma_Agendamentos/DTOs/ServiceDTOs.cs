@@ -41,6 +41,15 @@ public class ScheduleRequest
     public TimeSpan EndTime { get; set; }
 }
 
+// Adicionar DTO de resposta para Schedule
+public class ScheduleDto
+{
+    public Guid Id { get; set; }
+    public int DayOfWeek { get; set; }
+    public TimeSpan StartTime { get; set; }
+    public TimeSpan EndTime { get; set; }
+}
+
 public class BookingRequest
 {
     [Required]

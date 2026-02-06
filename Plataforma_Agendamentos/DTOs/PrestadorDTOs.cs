@@ -21,17 +21,6 @@ public class PrestadorPublicDto
 }
 
 /// <summary>
-/// DTO para horarios de agenda
-/// </summary>
-public class ScheduleDto
-{
-    public Guid Id { get; set; }
-    public int DayOfWeek { get; set; }
-    public TimeSpan StartTime { get; set; }
-    public TimeSpan EndTime { get; set; }
-}
-
-/// <summary>
 /// DTO para horarios disponiveis
 /// </summary>
 public class AvailableTimeSlotsDto
