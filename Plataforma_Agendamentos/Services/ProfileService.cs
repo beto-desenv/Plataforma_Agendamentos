@@ -182,6 +182,12 @@ public class ProfileService : IProfileService
         if (!string.IsNullOrEmpty(request.CPF))
             perfil.CPF = request.CPF.Trim();
 
+        if (!string.IsNullOrEmpty(request.ContatoPreferido))
+            perfil.ContatoPreferido = request.ContatoPreferido.Trim();
+
+        if (!string.IsNullOrEmpty(request.InteressesServicos))
+            perfil.InteressesServicos = request.InteressesServicos.Trim();
+
         if (!string.IsNullOrEmpty(request.PreferenciasNotificacao))
             perfil.PreferenciasNotificacao = request.PreferenciasNotificacao.Trim();
 
