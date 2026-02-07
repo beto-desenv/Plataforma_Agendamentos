@@ -440,7 +440,7 @@ public class ProfileService : IProfileService
                 Metricas = perfil.Metricas != null ? new
                 {
                     perfil.Metricas.AvaliacaoMedia,
-                    TotalAvaliacoes = perfil.Metricas.TotalAvaliacoes ?? 0,
+                    TotalAvaliacoes = perfil.Metricas.TotalAvaliacoes,
                     perfil.Metricas.TotalServicos,
                     perfil.Metricas.TotalAgendamentos
                 } : null
