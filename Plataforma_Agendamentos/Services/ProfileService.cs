@@ -44,6 +44,7 @@ public class ProfileService : IProfileService
                 user.Name,
                 user.Email,
                 user.UserType,
+                user.FotoPerfilUrl,
                 user.CreatedAt,
                 DadosCliente = perfil != null ? new
                 {
@@ -69,6 +70,7 @@ public class ProfileService : IProfileService
                 user.Name,
                 user.Email,
                 user.UserType,
+                user.FotoPerfilUrl,
                 user.CreatedAt,
                 DadosPrestador = perfil != null ? new
                 {
@@ -151,6 +153,9 @@ public class ProfileService : IProfileService
         if (!string.IsNullOrEmpty(request.Name))
             user.Name = request.Name.Trim();
 
+        if (!string.IsNullOrEmpty(request.FotoPerfilUrl))
+            user.FotoPerfilUrl = request.FotoPerfilUrl.Trim();
+
         if (!string.IsNullOrEmpty(request.Telefone))
             perfil.Telefone = request.Telefone.Trim();
 
@@ -188,6 +193,7 @@ public class ProfileService : IProfileService
             user.Name,
             user.Email,
             user.UserType,
+            user.FotoPerfilUrl,
             DadosCliente = new
             {
                 perfil.Telefone,
@@ -235,6 +241,9 @@ public class ProfileService : IProfileService
         // Atualizar campos fornecidos
         if (!string.IsNullOrEmpty(request.Name))
             user.Name = request.Name.Trim();
+
+        if (!string.IsNullOrEmpty(request.FotoPerfilUrl))
+            user.FotoPerfilUrl = request.FotoPerfilUrl.Trim();
 
         if (!string.IsNullOrEmpty(request.DisplayName))
             perfil.DisplayName = request.DisplayName.Trim();
@@ -337,6 +346,7 @@ public class ProfileService : IProfileService
             user.Name,
             user.Email,
             user.UserType,
+            user.FotoPerfilUrl,
             DadosPrestador = new
             {
                 perfil.Slug,

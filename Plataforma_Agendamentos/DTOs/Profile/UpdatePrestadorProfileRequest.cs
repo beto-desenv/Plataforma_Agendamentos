@@ -21,6 +21,7 @@ public class UpdatePrestadorProfileRequest
     public int? HorasAntecedenciaMinima { get; set; }
     public string? HorarioInicioSemana { get; set; }
     public string? HorarioFimSemana { get; set; }
+    public string? FotoPerfilUrl { get; set; }
     public string? LogoUrl { get; set; }
     public string? CoverImageUrl { get; set; }
     public string? PrimaryColor { get; set; }

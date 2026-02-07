@@ -11,4 +11,5 @@ public class UpdateClienteProfileRequest
     public string? CEP { get; set; }
     public string? CPF { get; set; }
     public string? PreferenciasNotificacao { get; set; }
+    public string? FotoPerfilUrl { get; set; }
 }
