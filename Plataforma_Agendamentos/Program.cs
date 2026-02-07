@@ -123,6 +123,7 @@ namespace Plataforma_Agendamentos
                 builder.Services.AddScoped<IServiceManagementService, ServiceManagementService>();
                 builder.Services.AddScoped<IPrestadorService, PrestadorService>();
                 builder.Services.AddScoped<IScheduleService, ScheduleService>();
+                builder.Services.AddScoped<IImageService, ImageService>(); // Serviço de imagens
                 builder.Services.AddMemoryCache();
                 builder.Services.AddHttpClient<ICepService, CepService>();
 

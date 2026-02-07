@@ -40,6 +40,10 @@ public class AppDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.Email).IsUnique();
             
+            // Configurar FotoPerfilUrl como TEXT (base64 grande)
+            entity.Property(e => e.FotoPerfilUrl)
+                .HasColumnType("text");
+            
             // Relacionamentos 1:1 com perfis
             entity.HasOne(e => e.ClientePerfil)
                 .WithOne(c => c.User)
@@ -83,6 +87,10 @@ public class AppDbContext : DbContext
             entity.HasIndex(e => e.Slug).IsUnique();
             entity.HasIndex(e => e.CNPJ);
             
+            // Configurar Bio como TEXT (pode ser grande)
+            entity.Property(e => e.Bio)
+                .HasColumnType("text");
+            
             // Relacionamentos 1:1
             entity.HasOne(e => e.Branding)
                 .WithOne(b => b.PrestadorPerfil)
@@ -102,6 +110,13 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.PrestadorPerfilId).IsUnique();
+            
+            // Configurar campos de imagem como TEXT (base64 grande)
+            entity.Property(e => e.LogoUrl)
+                .HasColumnType("text");
+            
+            entity.Property(e => e.CoverImageUrl)
+                .HasColumnType("text");
         });
     }
 

@@ -23,6 +23,11 @@ public interface IProfileService
     Task<object> UpdatePrestadorProfileAsync(Guid userId, UpdatePrestadorProfileRequest request);
     
     /// <summary>
+    /// Obtem perfil publico de prestador por slug
+    /// </summary>
+    Task<object?> GetPrestadorBySlugAsync(string slug);
+    
+    /// <summary>
     /// Verifica se slug ja esta em uso
     /// </summary>
     Task<bool> SlugExistsAsync(string slug, Guid? excludeUserId = null);

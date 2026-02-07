@@ -92,6 +92,7 @@ public class ProfileService : IProfileService
                     perfil.HorasAntecedenciaMinima,
                     perfil.HorarioInicioSemana,
                     perfil.HorarioFimSemana,
+                    FotoUrl = user.FotoPerfilUrl,
                     PublicUrl = perfil.GetPublicUrl(),
                     PerfilCompleto = perfil.TemPerfilCompleto(),
                     Branding = perfil.Branding != null ? new
@@ -216,6 +217,7 @@ public class ProfileService : IProfileService
                 .ThenInclude(p => p!.Branding)
             .Include(u => u.PrestadorPerfil)
                 .ThenInclude(p => p!.Metricas)
+            .Include(u => u.Services)
             .FirstOrDefaultAsync(u => u.Id == userId);
 
         if (user == null)
@@ -251,7 +253,10 @@ public class ProfileService : IProfileService
         if (!string.IsNullOrEmpty(request.TituloProfissional))
             perfil.TituloProfissional = request.TituloProfissional.Trim();
 
-        if (!string.IsNullOrEmpty(request.Bio))
+        // Mapear descricao ou bio para o campo Bio
+        if (!string.IsNullOrEmpty(request.Descricao))
+            perfil.Bio = request.Descricao.Trim();
+        else if (!string.IsNullOrEmpty(request.Bio))
             perfil.Bio = request.Bio.Trim();
 
         if (!string.IsNullOrEmpty(request.Telefone))
@@ -272,6 +277,16 @@ public class ProfileService : IProfileService
         if (!string.IsNullOrEmpty(request.Site))
             perfil.Site = request.Site.Trim();
 
+        // Mapear document para CPF ou CNPJ baseado no documentType
+        if (!string.IsNullOrEmpty(request.Document))
+        {
+            if (request.DocumentType == "cpf")
+                perfil.CPF = request.Document.Trim();
+            else if (request.DocumentType == "cnpj")
+                perfil.CNPJ = request.Document.Trim();
+        }
+
+        // Aceitar tanto CPF quanto CNPJ diretos
         if (!string.IsNullOrEmpty(request.CPF))
             perfil.CPF = request.CPF.Trim();
 
@@ -333,6 +348,33 @@ public class ProfileService : IProfileService
                 perfil.Branding.PrimaryColor = request.PrimaryColor;
         }
 
+        // Processar serviços se fornecido
+        if (request.Servicos != null && request.Servicos.Count > 0)
+        {
+            // Remover serviços antigos para este usuário
+            var servicosAntigos = _context.Services.Where(s => s.UserId == userId).ToList();
+            _context.Services.RemoveRange(servicosAntigos);
+
+            // Adicionar novos serviços
+            foreach (var servicoRequest in request.Servicos.Where(s => !string.IsNullOrEmpty(s.Nome)))
+            {
+                var novoServico = new Service
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    Nome = servicoRequest.Nome!.Trim(),
+                    Description = servicoRequest.Description?.Trim(),
+                    Preco = servicoRequest.Preco ?? 0,
+                    DurationMinutes = servicoRequest.DurationMinutes ?? 60,
+                    CriadoEm = DateTime.UtcNow,
+                    AtualizadoEm = DateTime.UtcNow
+                };
+                _context.Services.Add(novoServico);
+            }
+
+            _logger.LogInformation("Serviços atualizados para usuario {UserId}: {Count} servicos", userId, request.Servicos.Count);
+        }
+
         user.UpdatedAt = DateTime.UtcNow;
         perfil.UpdatedAt = DateTime.UtcNow;
 
@@ -367,6 +409,7 @@ public class ProfileService : IProfileService
                 perfil.HorasAntecedenciaMinima,
                 perfil.HorarioInicioSemana,
                 perfil.HorarioFimSemana,
+                FotoUrl = user.FotoPerfilUrl,
                 PublicUrl = perfil.GetPublicUrl(),
                 PerfilCompleto = perfil.TemPerfilCompleto(),
                 Branding = perfil.Branding != null ? new
@@ -381,7 +424,81 @@ public class ProfileService : IProfileService
                     perfil.Metricas.TotalServicos,
                     perfil.Metricas.TotalAgendamentos
                 } : null
-            }
+            },
+            Services = user.Services.Select(s => new
+            {
+                s.Id,
+                s.Nome,
+                s.Description,
+                s.Preco,
+                s.DurationMinutes
+            })
+        };
+    }
+
+    public async Task<object?> GetPrestadorBySlugAsync(string slug)
+    {
+        var prestador = await _context.PrestadorPerfis
+            .Include(p => p.User)
+            .Include(p => p.Branding)
+            .Include(p => p.Metricas)
+            .FirstOrDefaultAsync(p => p.Slug == slug.Trim().ToLowerInvariant());
+
+        if (prestador == null)
+            return null;
+
+        // Buscar serviços do prestador
+        var servicos = await _context.Services
+            .Where(s => s.UserId == prestador.UserId)
+            .Select(s => new
+            {
+                s.Id,
+                s.Nome,
+                Descricao = s.Description,
+                s.Preco,
+                s.DurationMinutes
+            })
+            .ToListAsync();
+
+        return new
+        {
+            Slug = prestador.Slug,
+            DisplayName = prestador.DisplayName,
+            TituloProfissional = prestador.TituloProfissional,
+            Bio = prestador.Bio,
+            Descricao = prestador.Bio, // Alias para compatibilidade
+            AnosExperiencia = prestador.AnosExperiencia,
+            Telefone = prestador.Telefone,
+            Endereco = prestador.Endereco,
+            Cidade = prestador.Cidade,
+            Estado = prestador.Estado,
+            CEP = prestador.CEP,
+            Site = prestador.Site,
+            RaioAtendimento = prestador.RaioAtendimento,
+            AceitaAgendamentoImediato = prestador.AceitaAgendamentoImediato,
+            HorasAntecedenciaMinima = prestador.HorasAntecedenciaMinima,
+            HorarioInicioSemana = prestador.HorarioInicioSemana,
+            HorarioFimSemana = prestador.HorarioFimSemana,
+            FotoUrl = prestador.User.FotoPerfilUrl,
+            FotoPerfilUrl = prestador.User.FotoPerfilUrl,
+            User = new
+            {
+                Name = prestador.User.Name,
+                prestador.User.Email
+            },
+            Branding = prestador.Branding != null ? new
+            {
+                prestador.Branding.LogoUrl,
+                prestador.Branding.CoverImageUrl,
+                prestador.Branding.PrimaryColor
+            } : null,
+            Metricas = prestador.Metricas != null ? new
+            {
+                prestador.Metricas.AvaliacaoMedia,
+                prestador.Metricas.TotalServicos,
+                prestador.Metricas.TotalAgendamentos
+            } : null,
+            Servicos = servicos
         };
     }
 

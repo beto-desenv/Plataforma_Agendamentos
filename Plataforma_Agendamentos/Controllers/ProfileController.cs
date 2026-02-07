@@ -34,6 +34,26 @@ public class ProfileController : BaseApiController
         return Ok(CreateSuccessResponse(profile, "Perfil obtido com sucesso"));
     }
 
+    [HttpGet("prestador/{slug}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetPrestadorBySlug(string slug)
+    {
+        try
+        {
+            var prestador = await _profileService.GetPrestadorBySlugAsync(slug);
+            
+            if (prestador == null)
+                return NotFound(CreateErrorResponse("Prestador nao encontrado"));
+
+            return Ok(CreateSuccessResponse(prestador, "Perfil publico obtido com sucesso"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao buscar prestador por slug: {Slug}", slug);
+            return StatusCode(500, CreateErrorResponse("Erro ao buscar perfil do prestador"));
+        }
+    }
+
     [HttpPut("cliente")]
     public async Task<IActionResult> UpdateClienteProfile([FromBody] UpdateClienteProfileRequest request)
     {

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Plataforma_Agendamentos.Data;
@@ -11,9 +12,11 @@ using Plataforma_Agendamentos.Data;
 namespace Plataforma_Agendamentos.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260207032243_UpdateImageFieldsToText")]
+    partial class UpdateImageFieldsToText
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -194,7 +197,7 @@ namespace Plataforma_Agendamentos.Migrations
 
                     b.Property<string>("Bio")
                         .HasMaxLength(1000)
-                        .HasColumnType("text");
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<string>("CEP")
                         .HasMaxLength(9)
