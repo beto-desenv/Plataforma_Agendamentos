@@ -55,6 +55,9 @@ public class ProfileService : IProfileService
                     perfil.Estado,
                     perfil.CEP,
                     perfil.CPF,
+                    perfil.ContatoPreferido,
+                    perfil.InteressesServicos,
+                    perfil.Bio,
                     perfil.PreferenciasNotificacao,
                     perfil.TotalAgendamentos,
                     perfil.UltimoAgendamento
@@ -74,6 +77,8 @@ public class ProfileService : IProfileService
                 user.CreatedAt,
                 DadosPrestador = perfil != null ? new
                 {
+                    DocumentType = !string.IsNullOrEmpty(perfil.CNPJ) ? "cnpj" : "cpf",
+                    Document = !string.IsNullOrEmpty(perfil.CNPJ) ? perfil.CNPJ : perfil.CPF,
                     perfil.Slug,
                     perfil.DisplayName,
                     perfil.TituloProfissional,
@@ -436,6 +441,7 @@ public class ProfileService : IProfileService
                 Metricas = perfil.Metricas != null ? new
                 {
                     perfil.Metricas.AvaliacaoMedia,
+                    TotalAvaliacoes = perfil.Metricas.TotalAvaliacoes ?? 0,
                     perfil.Metricas.TotalServicos,
                     perfil.Metricas.TotalAgendamentos
                 } : null
