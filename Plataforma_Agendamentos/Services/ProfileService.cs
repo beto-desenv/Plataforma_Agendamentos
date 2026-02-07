@@ -210,11 +210,13 @@ public class ProfileService : IProfileService
             {
                 perfil.Telefone,
                 perfil.DataNascimento,
+                perfil.CPF,
                 perfil.Endereco,
                 perfil.Cidade,
                 perfil.Estado,
                 perfil.CEP,
-                perfil.CPF,
+                perfil.ContatoPreferido,
+                perfil.InteressesServicos,
                 perfil.PreferenciasNotificacao,
                 perfil.TotalAgendamentos
             }
@@ -402,6 +404,8 @@ public class ProfileService : IProfileService
             user.FotoPerfilUrl,
             DadosPrestador = new
             {
+                DocumentType = !string.IsNullOrEmpty(perfil.CNPJ) ? "cnpj" : "cpf",
+                Document = !string.IsNullOrEmpty(perfil.CNPJ) ? perfil.CNPJ : perfil.CPF,
                 perfil.Slug,
                 perfil.DisplayName,
                 perfil.TituloProfissional,
