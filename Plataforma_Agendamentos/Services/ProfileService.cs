@@ -165,7 +165,7 @@ public class ProfileService : IProfileService
             perfil.Telefone = request.Telefone.Trim();
 
         if (request.DataNascimento.HasValue)
-            perfil.DataNascimento = request.DataNascimento;
+            perfil.DataNascimento = DateTime.SpecifyKind(request.DataNascimento.Value, DateTimeKind.Utc);
 
         if (!string.IsNullOrEmpty(request.Endereco))
             perfil.Endereco = request.Endereco.Trim();
