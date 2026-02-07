@@ -25,7 +25,6 @@ public class UpdateClienteProfileRequest
     public string? InteressesServicos { get; set; }
     
     public string? PreferenciasNotificacao { get; set; }
-    public string? Bio { get; set; }
     
     [ValidBase64Image(500)]
     [JsonPropertyName("fotoPerfilUrl")] // Aceitar camelCase do frontend

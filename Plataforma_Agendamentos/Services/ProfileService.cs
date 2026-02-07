@@ -57,7 +57,6 @@ public class ProfileService : IProfileService
                     perfil.CPF,
                     perfil.ContatoPreferido,
                     perfil.InteressesServicos,
-                    perfil.Bio,
                     perfil.PreferenciasNotificacao,
                     perfil.TotalAgendamentos,
                     perfil.UltimoAgendamento
