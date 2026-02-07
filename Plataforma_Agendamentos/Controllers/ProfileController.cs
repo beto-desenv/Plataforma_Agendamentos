@@ -61,6 +61,11 @@ public class ProfileController : BaseApiController
         if (userId == null)
             return Unauthorized();
 
+        _logger.LogInformation("UpdateClienteProfile chamado - UserId: {UserId}, FotoPerfilUrl presente: {HasPhoto}, Tamanho: {Size}", 
+            userId, 
+            !string.IsNullOrEmpty(request.FotoPerfilUrl),
+            request.FotoPerfilUrl?.Length ?? 0);
+
         try
         {
             var result = await _profileService.UpdateClienteProfileAsync(userId.Value, request);
@@ -69,6 +74,7 @@ public class ProfileController : BaseApiController
         }
         catch (InvalidOperationException ex)
         {
+            _logger.LogError("Erro ao atualizar perfil de cliente: {Message}", ex.Message);
             return BadRequest(CreateErrorResponse(ex.Message));
         }
     }

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Plataforma_Agendamentos.Validators;
 
 namespace Plataforma_Agendamentos.DTOs.Profile;
@@ -15,5 +16,6 @@ public class UpdateClienteProfileRequest
     public string? PreferenciasNotificacao { get; set; }
     
     [ValidBase64Image(500)]
+    [JsonPropertyName("fotoPerfilUrl")] // Aceitar camelCase do frontend
     public string? FotoPerfilUrl { get; set; }
 }

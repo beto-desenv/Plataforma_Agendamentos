@@ -155,7 +155,11 @@ public class ProfileService : IProfileService
             user.Name = request.Name.Trim();
 
         if (!string.IsNullOrEmpty(request.FotoPerfilUrl))
-            user.FotoPerfilUrl = request.FotoPerfilUrl.Trim();
+        {
+            var newPhotoUrl = request.FotoPerfilUrl.Trim();
+            _logger.LogInformation("Atualizando foto do cliente {UserId} - Tamanho: {Size} chars", userId, newPhotoUrl.Length);
+            user.FotoPerfilUrl = newPhotoUrl;
+        }
 
         if (!string.IsNullOrEmpty(request.Telefone))
             perfil.Telefone = request.Telefone.Trim();
@@ -186,7 +190,8 @@ public class ProfileService : IProfileService
 
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Perfil de cliente atualizado: {UserId}", userId);
+        _logger.LogInformation("Perfil de cliente atualizado: {UserId} - FotoPerfilUrl: {HasPhoto}", 
+            userId, !string.IsNullOrEmpty(user.FotoPerfilUrl));
 
         return new
         {
